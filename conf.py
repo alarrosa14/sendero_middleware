@@ -1,0 +1,3 @@
+class DeviceManager:
+	REGISTRATION_PORT = 8888
+	CONNECTION_PORT = 8889
