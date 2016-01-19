@@ -17,6 +17,9 @@ if (len(sys.argv) > 1):
         artnet_middleware.listen_and_redirect_artnet_packets(UDP_IP, UDP_PORT, BROADCAST_PORT)
     if (sys.argv[1] == "devserver"):
         DeviceManager.listen_for_devices()
+    if (sys.argv[1] == "ctrlserver"):
+        DeviceManager.listen_for_devices()
+        DeviceManager.start_control_server()
 else:
     print("Options:")
     print("\tmiddleware sin         >   sends the dancing sins")

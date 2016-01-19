@@ -1,17 +1,18 @@
 import socket
 import threading
+import time
 
 import conf
 
 from utils.StoppableThread import StoppableThread 
 from utils.Utils import Utils
+from device_manager import millis
 from device_manager.Device import Device
-
 
 class DeviceManager:
     devices_connected = {}
 
-    def worker():
+    def device_server_worker():
         sock_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock_udp.bind(("0.0.0.0",conf.DeviceManager.REGISTRATION_PORT))
         sock_udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -41,10 +42,25 @@ class DeviceManager:
 
                     DeviceManager.devices_connected[device_id] = device
                     print("New device registered: {0}".format(DeviceManager.devices_connected[device_id]))
+                    
 
-                    device.send_control_packet(True, 1, True)
+    def control_server_worker():
+        current_device_index = 0
+        while True:
+            time.sleep(1)
             
+            if len(DeviceManager.devices_connected) > 0:
+                device = list(DeviceManager.devices_connected.values())[current_device_index]
+                current_device_index = (current_device_index + 1) % len(DeviceManager.devices_connected)
+                device.synchronize_device_clock()
+
+
     def listen_for_devices():
         print("Starting Device Registering thread...")
-        t = threading.Thread(target=DeviceManager.worker)
+        t = threading.Thread(target=DeviceManager.device_server_worker)
+        t.start()
+
+    def start_control_server():
+        print("Starting Control Server thread...")
+        t = threading.Thread(target=DeviceManager.control_server_worker)
         t.start()
