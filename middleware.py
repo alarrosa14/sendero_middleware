@@ -20,6 +20,9 @@ if (len(sys.argv) > 1):
     if (sys.argv[1] == "ctrlserver"):
         DeviceManager.listen_for_devices()
         DeviceManager.start_control_server()
+        if len(sys.argv) > 2 and sys.argv[2] == "test":
+            sin_stream.send_dancing_sins(UDP_IP, UDP_PORT)
+
 else:
     print("Options:")
     print("\tmiddleware sin         >   sends the dancing sins")

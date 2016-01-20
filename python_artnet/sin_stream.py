@@ -7,8 +7,6 @@ import struct
 
 from python_artnet import clock_sync
 
-IPS = ["192.168.1.148", "192.168.1.129"]
-
 def list_to_string(list):
 	result = "";
 	for elem in list:
@@ -17,12 +15,11 @@ def list_to_string(list):
 
 
 def send_dancing_sins(UDP_IP, UDP_PORT):
-	clock_sync.synchronize_clocks(IPS)
-
+	time.sleep(10)
 	print(("Sending dancing sins to {0}:{1}...").format(
         UDP_IP, UDP_PORT))
 
-	message = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	message = [0]*24
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -42,12 +39,8 @@ def send_dancing_sins(UDP_IP, UDP_PORT):
 
 		for i in range(0,24,3):
 			message[i:i+3] = color
-		# message[0:3] = color
-		# message[21:24] = color
-		# print(message)
 
 		packet = struct.pack("<iH24B", int(clock_sync.millis() + 200), seq, *message)
-		# print("PTS {0}".format(clock_sync.millis() + 200))
 
 		sock.sendto(packet, (UDP_IP, UDP_PORT))
 		
@@ -60,6 +53,6 @@ def send_dancing_sins(UDP_IP, UDP_PORT):
 			#if seq % 200 == 0:
 			#	clock_sync.synchronize_clocks(IPS)
 
-		if clock_sync.millis() >= 300000:
-			break
+		# if clock_sync.millis() >= 300000:
+		# 	break
 
