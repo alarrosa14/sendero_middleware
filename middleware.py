@@ -17,6 +17,8 @@ if (len(sys.argv) > 1):
         artnet_middleware.listen_and_redirect_artnet_packets(UDP_IP, UDP_PORT, BROADCAST_PORT)
     if (sys.argv[1] == "devserver"):
         DeviceManager.listen_for_devices()
+        if len(sys.argv) > 2 and sys.argv[2] == "test":
+            sin_stream.send_dancing_sins(UDP_IP, UDP_PORT)
     if (sys.argv[1] == "ctrlserver"):
         DeviceManager.listen_for_devices()
         DeviceManager.start_control_server()

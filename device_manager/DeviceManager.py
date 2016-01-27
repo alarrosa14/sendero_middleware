@@ -43,6 +43,9 @@ class DeviceManager:
                 if device_id in DeviceManager.devices_connected:
                     print("A device with identifier {0} is already registered".format(device_id))
                     print("Reconnecting...")
+                    device = DeviceManager.devices_connected.pop(device_id, 0)
+                    if device:
+                        del device
                 DeviceManager.lock.release()
 
                 print("Will connect to {0}:{1}".format(addr[0], conf.DeviceManager.CONNECTION_PORT))
@@ -55,7 +58,7 @@ class DeviceManager:
                     sock_tcp.close()
                     continue
                 
-                device = Device(device_id=device_id, connection_socket=sock_tcp)
+                device = Device(device_id=device_id, connection_socket=sock_tcp, active=True)
 
                 DeviceManager.addDevice(device_id,device)
                 print("New device registered: {0}".format(device))
@@ -66,12 +69,15 @@ class DeviceManager:
         while True:
             time.sleep(5)
             
+            
+
+            """
             if DeviceManager.deviceConnectedQty() > 0:
                 DeviceManager.lock.acquire()
                 device = list(DeviceManager.devices_connected.values())[current_device_index]
                 current_device_index = (current_device_index + 1) % len(DeviceManager.devices_connected)
                 DeviceManager.lock.release()
-                device.synchronize_device_clock()
+            """
 
 
     def listen_for_devices():

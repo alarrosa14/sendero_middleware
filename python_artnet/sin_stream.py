@@ -2,6 +2,7 @@ import sys
 import socket
 import math
 import time
+import conf
 
 import struct
 
@@ -15,11 +16,11 @@ def list_to_string(list):
 
 
 def send_dancing_sins(UDP_IP, UDP_PORT):
-	time.sleep(10)
-	print(("Sending dancing sins to {0}:{1}...").format(
-        UDP_IP, UDP_PORT))
+	# time.sleep(5)
+	print(("Sending dancing sins to {0}:{1} for {2} pixels...").format(
+        UDP_IP, UDP_PORT, conf.GLOBAL_PIXELS_QTY))
 
-	message = [0]*24
+	message = [0]*3*conf.GLOBAL_PIXELS_QTY
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -37,10 +38,10 @@ def send_dancing_sins(UDP_IP, UDP_PORT):
 		b = int(255*(math.sin(t+4) + 1)/2)
 		color = [r,g,b]
 
-		for i in range(0,24,3):
+		for i in range(0,3*conf.GLOBAL_PIXELS_QTY,3):
 			message[i:i+3] = color
 
-		packet = struct.pack("<iH24B", int(clock_sync.millis() + 200), seq, *message)
+		packet = struct.pack("<iH{0}B".format(3*conf.GLOBAL_PIXELS_QTY), int(clock_sync.millis() + 200), seq, *message)
 
 		sock.sendto(packet, (UDP_IP, UDP_PORT))
 		
