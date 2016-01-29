@@ -12,12 +12,12 @@ class DeviceManager:
     devices_connected = {}
     lock = threading.Lock()
 
-    def addDevice(device_id, device):
+    def add_device(device_id, device):
         DeviceManager.lock.acquire()
         DeviceManager.devices_connected[device_id] = device
         DeviceManager.lock.release()
 
-    def deviceConnectedQty():
+    def device_connected_qty():
         res = 0
         DeviceManager.lock.acquire()
         res = len(DeviceManager.devices_connected)
@@ -62,7 +62,7 @@ class DeviceManager:
 
                     device = Device(device_id=device_id, connection_socket=sock_tcp, active=True)
 
-                    DeviceManager.addDevice(device_id, device)
+                    DeviceManager.add_device(device_id, device)
                     print("New device registered: {0}".format(device))
 
                 else:
@@ -70,16 +70,30 @@ class DeviceManager:
 
     def control_server_worker():
         current_device_index = 0
+        request_interval = conf.STATS_REQUEST_INTERVAL
         while True:
-            time.sleep(5)
+            time.sleep(request_interval)
 
-            if DeviceManager.deviceConnectedQty() > 0:
+            if DeviceManager.device_connected_qty() > 0:
                 DeviceManager.lock.acquire()
                 device = list(DeviceManager.devices_connected.values())[current_device_index]
                 current_device_index = (current_device_index + 1) % len(DeviceManager.devices_connected)
                 DeviceManager.lock.release()
 
                 device.request_stats()
+
+    def keep_alive_worker():
+        keep_alive_interval = conf.KEEP_ALIVE_INTERVAL
+        while True:
+            time.sleep(keep_alive_interval)
+
+            if DeviceManager.device_connected_qty() > 0:
+                DeviceManager.lock.acquire()
+                device = list(DeviceManager.devices_connected.values())
+                DeviceManager.lock.release()
+
+                for d in device:
+                    d.send_keep_alive()
 
     def listen_for_devices():
         print("Starting Device Registering thread...")
@@ -89,4 +103,9 @@ class DeviceManager:
     def start_control_server():
         print("Starting Control Server thread...")
         t = threading.Thread(target=DeviceManager.control_server_worker)
+        t.start()
+
+    def start_sending_keep_alive():
+        print("Starting Keep Alive thread...")
+        t = threading.Thread(target=DeviceManager.keep_alive_worker)
         t.start()

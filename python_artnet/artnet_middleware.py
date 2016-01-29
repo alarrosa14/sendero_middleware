@@ -2,7 +2,7 @@ import sys
 
 from socket import (socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR,
                     SO_BROADCAST)
-from struct import pack, unpack
+from struct import unpack
 
 
 # UDP_IP = "127.0.0.1"
@@ -42,7 +42,7 @@ class ArtnetPacket:
 
         packet.data = unpack(
             '{0}s'.format(int(packet.length)),
-            raw_data[18:18+int(packet.length)])[0]
+            raw_data[18:18 + int(packet.length)])[0]
 
         return packet
 
@@ -69,6 +69,3 @@ def listen_and_redirect_artnet_packets(UDP_IP, UDP_PORT, BROADCAST_PORT):
             sock.close()
             sock_broadcast.close()
             sys.exit()
-
-
-# listen_and_redirect_artnet_packets()

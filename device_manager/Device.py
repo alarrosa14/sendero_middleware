@@ -9,6 +9,7 @@ CLOCK_CORRECTION_OFFSET = 2
 CONFIGURATION = 4
 CLOSE_CONNECTION = 8
 REQUEST_STATS = 16
+KEEP_ALIVE = 32
 
 
 class Device:
@@ -53,13 +54,13 @@ class Device:
             initial_packet_payload += "{0}:{1} ".format(key, value)
         initial_packet_payload += "\0"
 
-        self.send_control_packet(True, False, True, False, False, bytes(initial_packet_payload, encoding="ASCII"))
+        self.send_control_packet(True, False, True, False, False, False, bytes(initial_packet_payload, encoding="ASCII"))
 
     def request_clock(self):
         self.send_control_packet(True, False, False)
 
     def send_clock_correction_offset(self, offset=0):
-        self.send_control_packet(False, True, False, True, False, struct.pack('i', offset))
+        self.send_control_packet(False, True, False, True, False, False, struct.pack('i', offset))
 
     def synchronize_device_clock(self, server_clock_before_send):
         sendero_header = self.connection_socket.recv(8)
@@ -81,7 +82,7 @@ class Device:
                 print("Packet header was not SENDERO")
 
     def request_stats(self):
-        self.send_control_packet(False, False, False, False, True, b'')
+        self.send_control_packet(False, False, False, False, True, False, b'')
         sendero_header = self.connection_socket.recv(8)
         if len(sendero_header) == 8:
             (s_header, s_mask) = struct.unpack('7sB', sendero_header)
@@ -103,11 +104,14 @@ class Device:
                 stats = dict([stat.split(':') for stat in stats_string.split()])
                 print(stats)
 
+    def send_keep_alive(self):
+        self.send_control_packet(False, False, False, False, False, True)
+
     ##########################################################################################
     # Packet Builder
     ##########################################################################################
 
-    def send_control_packet(self, request_clock=False, clock_correction_offset=False, configuration=False, close_connection=False, request_stats=False, data=b''):
+    def send_control_packet(self, request_clock=False, clock_correction_offset=False, configuration=False, close_connection=False, request_stats=False, keep_alive=False, data=b''):
         word_to_send = 0
         word_to_send = (
             word_to_send | REQUEST_CLOCK) if request_clock else word_to_send
@@ -119,6 +123,8 @@ class Device:
             word_to_send | CLOSE_CONNECTION) if close_connection else word_to_send
         word_to_send = (
             word_to_send | REQUEST_STATS) if request_stats else word_to_send
+        word_to_send = (
+            word_to_send | KEEP_ALIVE) if keep_alive else word_to_send
         print(struct.pack('7sB{0}s'.format(len(data)), b'SENDERO', word_to_send, data))
 
         if not self.connection_established:
