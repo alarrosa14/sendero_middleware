@@ -12,7 +12,7 @@ config = {
     'author_email': 'My email.',
     'version': '0.1',
     'install_requires': ['nose'],
-    'packages': ['python_artnet'],
+    'packages': ['sendero_middleware'],
     'scripts': [],
     'name': 'projectname'
 }

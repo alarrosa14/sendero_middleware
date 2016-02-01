@@ -1,6 +1,6 @@
 
 from nose.tools import *
-import python_artnet
+import sendero_middleware
 
 def setup():
     print "SETUP!"
