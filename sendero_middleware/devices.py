@@ -89,28 +89,34 @@ class Device:
                 print("Packet header was not SENDERO")
 
     def request_stats(self):
-        self.send_control_packet(False, False, False, False, True, False, b'')
-        sendero_header = self.connection_socket.recv(8)
-        if len(sendero_header) == 8:
-            (s_header, s_mask) = struct.unpack('7sB', sendero_header)
-            if s_header == b'SENDERO':
+        stats_are_dirty = True
+        stats = dict()
+        while stats_are_dirty:
+            self.send_control_packet(False, False, False, False, True, False, b'')
+            sendero_header = self.connection_socket.recv(8)
+            if len(sendero_header) == 8:
+                (s_header, s_mask) = struct.unpack('7sB', sendero_header)
+                if s_header == b'SENDERO':
 
-                self.connection_socket.settimeout(30)
-                recv_aux = self.connection_socket.recv(1)
-                self.connection_socket.settimeout(None)
-
-                stats_string = recv_aux.decode("ASCII")
-                while recv_aux != b'\0':
                     self.connection_socket.settimeout(30)
                     recv_aux = self.connection_socket.recv(1)
                     self.connection_socket.settimeout(None)
 
-                    if recv_aux != b'\0':
-                        stats_string += recv_aux.decode("ASCII")
+                    stats_string = recv_aux.decode("ASCII")
+                    while recv_aux != b'\0':
+                        self.connection_socket.settimeout(30)
+                        recv_aux = self.connection_socket.recv(1)
+                        self.connection_socket.settimeout(None)
 
-                stats = dict(
-                    [stat.split(':') for stat in stats_string.split()])
-                print(stats)
+                        if recv_aux != b'\0':
+                            stats_string += recv_aux.decode("ASCII")
+
+                    stats = dict(
+                        [stat.split(':') for stat in stats_string.split()])
+                    print(stats)
+                    stats_are_dirty = stats['Stats.dirty'] == 'True'
+            time.sleep(0.5)
+        return stats
 
     def send_keep_alive(self):
         self.send_control_packet(False, False, False, False, False, True)
