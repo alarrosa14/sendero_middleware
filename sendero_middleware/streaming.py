@@ -75,6 +75,12 @@ def send_dancing_sins(udp_ip, udp_port):
     t = 0
     seq = 0
 
+    # Wait for connections
+    while not (devices.device_connected_qty() == 3):
+        time.sleep(1)
+        print('**** Waiting for connections ***')
+        pass
+
     while True:
 
         # raw_input()
@@ -84,7 +90,12 @@ def send_dancing_sins(udp_ip, udp_port):
         color = [r, g, b]
 
         for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
-            message[i:i + 3] = color
+            # Black and red
+            if seq % 2 == 0:
+                message[i:i + 3] = [0, 0, 0]
+            else:
+                message[i:i + 3] = [0, 255, 0]
+            # message[i:i + 3] = color
 
         packet = struct.pack("<iH{0}B".format(3 * config.GLOBAL_PIXELS_QTY),
                              int(devices.millis() + 200), seq, *message)
@@ -92,7 +103,8 @@ def send_dancing_sins(udp_ip, udp_port):
         sock.sendto(packet, (udp_ip, udp_port))
 
         seq += 1
-        t += 0.042
+        # t += 0.042
+        t += 5
         time.sleep(0.042)
 
         if seq % 100 == 0:

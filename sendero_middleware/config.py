@@ -6,7 +6,7 @@ CONNECTION_PORT = 8889
 
 DEFAULT_DEVICE_MANAGED_PIXELS_QTY = 8
 
-GLOBAL_PIXELS_QTY = 24
+GLOBAL_PIXELS_QTY = 100
 
 DEVICE_CONFIG = {
     1: {
@@ -15,17 +15,17 @@ DEVICE_CONFIG = {
     },
     2: {
         "Device.managedPixelsQty": 8,
-        "Device.firstPixel": 8
+        "Device.firstPixel": 0
     },
     3: {
         "Device.managedPixelsQty": 8,
-        "Device.firstPixel": 16
+        "Device.firstPixel": 0
     }
 }
 
 GLOBAL_CONFIG = {
     "Global.pixelsQty": GLOBAL_PIXELS_QTY,
-    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL * 2
+    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL * 1
 }
 
 

@@ -31,7 +31,15 @@ class Device:
 
         server_clock_before_send = millis()
         self.set_initial_configs()
-        self.synchronize_device_clock(server_clock_before_send)
+        offset_ = self.synchronize_device_clock(server_clock_before_send)
+
+        # offset_ = 1000
+        # while (abs(offset_) > 5):
+        #     server_clock_before_send = millis()
+        #     self.set_initial_configs()
+        #     offset_ = self.synchronize_device_clock(server_clock_before_send)
+        #     print("------------", self.id, " : ", offset_)
+        #     time.sleep(1)
 
     def __del__(self):
         if self.connection_socket:
@@ -73,8 +81,7 @@ class Device:
         print(sendero_header)
         if len(sendero_header) == 8:
             (s_header, s_mask) = struct.unpack('7sB', sendero_header)
-            print(s_header)
-            print(s_mask)
+
             if s_header == b'SENDERO':
                 device_time = struct.unpack(
                     'i', self.connection_socket.recv(4))[0]
@@ -85,6 +92,7 @@ class Device:
                       "server".format(int(device_time + (rtt / 2)),
                                       current_millis, rtt, offset))
                 self.send_clock_correction_offset(offset)
+                return offset
             else:
                 print("Packet header was not SENDERO")
 
@@ -113,9 +121,14 @@ class Device:
 
                     stats = dict(
                         [stat.split(':') for stat in stats_string.split()])
-                    print(stats)
                     stats_are_dirty = stats['Stats.dirty'] == 'True'
             time.sleep(0.5)
+
+        print('############################')
+        print('STATS FOR', self.id)
+        print(stats)
+        print('############################')
+
         return stats
 
     def send_keep_alive(self):
