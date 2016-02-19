@@ -61,7 +61,6 @@ def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
 
 ####
 # Sins:
-
 def send_dancing_sins(udp_ip, udp_port):
     # time.sleep(5)
     print(("Sending dancing sins to {0}:{1} for {2} pixels...").format(
@@ -77,7 +76,8 @@ def send_dancing_sins(udp_ip, udp_port):
 
     while True:
 
-        # raw_input()
+        # Uncomment the line below to send a package on each key press
+        # input()
         r = int(255 * (math.sin(t) + 1) / 2)
         g = int(255 * (math.sin(t + 3) + 1) / 2)
         b = int(255 * (math.sin(t + 4) + 1) / 2)
@@ -91,7 +91,9 @@ def send_dancing_sins(udp_ip, udp_port):
 
         sock.sendto(packet, (udp_ip, udp_port))
 
-        seq += 1
+        # Important!
+        # seq is a short number and overflows on 65535
+        seq = (seq + 1) % 65535
         t += 0.042
         time.sleep(0.042)
 
@@ -100,8 +102,10 @@ def send_dancing_sins(udp_ip, udp_port):
                 "Current sequence number/time: "
                 "{0} - {1}".format(seq, devices.millis()))
 
-        if seq == 1000:
-            devices.request_statistics()
-            sys.exit(0)
+        # Uncomment the lines below to request statistics every N packets
+        # N = 1000
+        # if seq == N:
+        #     devices.request_statistics()
+        #     sys.exit(0)
 
 ####
