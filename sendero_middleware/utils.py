@@ -1,6 +1,59 @@
+from sendero_middleware import config
+import struct
+import time
+
+""" Initial timestamp """
+initial_millis = int(round(time.time() * 1000))
+
+
+def millis():
+    """ Returns the time in miliseconds elapsed from the application started running."""
+    return int(round(time.time() * 1000)) - initial_millis
+
+
 def represents_int(s):
+    """ Try to cast s """
     try:
         int(s)
         return True
     except ValueError:
         return False
+
+
+def increment_seq(current_seq):
+    """ Increments the packet's sequence number taking into account the potencial unit overflow """
+    return ((current_seq + 1) % config.SEQ_MAX)
+
+
+def unpack_raw_artnet_packet(raw_data):
+    """ Unpacks an ArtNet packet to create a Sendero-Wireless-Protocol packet """
+
+    if struct.unpack('!8s', raw_data[:8])[0] != config.ARTNET_HEADER:
+        print("Received a non Art-Net packet")
+        return None
+
+    packet = {}
+    (packet['op_code'], packet['ver'], packet['sequence'], packet['physical'],
+        packet['universe'], packet['length']) = struct.unpack(
+        '!HHBBHH', raw_data[8:18])
+
+    packet['data'] = struct.unpack(
+        '{0}s'.format(int(packet['length'])),
+        raw_data[18:18 + int(packet['length'])])[0]
+
+    return packet
+
+
+def sendero_data_packet(seq, payload):
+    """ Constructs a Sendero-Wireless-Protocol data packet """
+    # XXX: This packet should have the SENDERO header
+    return struct.pack("<iB{0}B".format(3 * config.GLOBAL_PIXELS_QTY),
+                       int(millis() + config.PLAYBACK_TIME_DELAY),
+                       seq,
+                       *payload)
+
+
+def sendero_control_packet():
+    """ Constructs a Sendero-Wireless-Protocol control packet """
+    # XXX: Pending - Unused for the moment.
+    return None
