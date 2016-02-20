@@ -12,9 +12,6 @@ CLOSE_CONNECTION = 8
 REQUEST_STATS = 16
 KEEP_ALIVE = 32
 
-initial_millis = int(round(time.time() * 1000))
-millis = lambda: int(round(time.time() * 1000)) - initial_millis
-
 
 class Device:
 
@@ -29,7 +26,7 @@ class Device:
         self.connection_established = True
         self.raddr = self.connection_socket.getpeername()
 
-        server_clock_before_send = millis()
+        server_clock_before_send = utils.millis()
         self.set_initial_configs()
         self.synchronize_device_clock(server_clock_before_send)
 
@@ -70,15 +67,13 @@ class Device:
 
     def synchronize_device_clock(self, server_clock_before_send):
         sendero_header = self.connection_socket.recv(8)
-        print(sendero_header)
         if len(sendero_header) == 8:
+
             (s_header, s_mask) = struct.unpack('7sB', sendero_header)
-            print(s_header)
-            print(s_mask)
             if s_header == b'SENDERO':
                 device_time = struct.unpack(
                     'i', self.connection_socket.recv(4))[0]
-                current_millis = millis()
+                current_millis = utils.millis()
                 rtt = current_millis - server_clock_before_send
                 offset = int((current_millis - device_time) + (rtt / 2.0))
                 print("offset: {3} , rtt: {2} -> device {0} vs {1} "
@@ -113,7 +108,9 @@ class Device:
 
                     stats = dict(
                         [stat.split(':') for stat in stats_string.split()])
+                    print("### Statistics from {0} ###".format(self.id))
                     print(stats)
+                    print("###########")
                     stats_are_dirty = stats['Stats.dirty'] == 'True'
             time.sleep(0.5)
         return stats
@@ -146,9 +143,6 @@ class Device:
             if request_stats else word_to_send
         word_to_send = (word_to_send | KEEP_ALIVE)\
             if keep_alive else word_to_send
-
-        print(struct.pack('7sB{0}s'.format(
-            len(data)), b'SENDERO', word_to_send, data))
 
         if not self.connection_established:
             # Try to reconnect
@@ -193,7 +187,7 @@ def device_connected_qty():
 
 def device_server_worker():
     sock_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock_udp.bind(("0.0.0.0", config.REGISTRATION_PORT))
+    sock_udp.bind((config.UDP_IP, config.REGISTRATION_PORT))
     sock_udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
     while True:
@@ -229,8 +223,6 @@ def device_server_worker():
                     sock_tcp.close()
                     continue
 
-                print("Despues de exception")
-
                 device = Device(device_id=device_id,
                                 connection_socket=sock_tcp, active=True)
 
@@ -243,8 +235,9 @@ def device_server_worker():
 
 def control_server_worker():
     current_device_index = 0
+    request_stats_interval = config.STATS_REQUEST_INTERVAL
     while True:
-        time.sleep(5)
+        time.sleep(request_stats_interval)
 
         if device_connected_qty() > 0:
             lock.acquire()
