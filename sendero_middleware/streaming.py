@@ -1,19 +1,43 @@
+"""Sendero Streaming module."""
+
+import struct
 import sys
 
-from socket import (socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST)
+from socket import (
+    socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST)
 
 import math
 import time
 
 from sendero_middleware import config, utils
 
+SYNC_EXPIRATION = 1
+
+clock_expiration_period_finish = None
+
+
+def notify_sync_expiration():
+    """
+    Notify about new device.
+
+    This must be called only when config.ENABLE_CLOCK_EXPIRATION_FLAG
+    is enabled.
+    Will make the streaming send SYNC_EXPIRATION flag to the devices
+    for config.CLOCK_EXPIRATION_PERIOD milliseconds.
+    """
+    global clock_expiration_period_finish
+    assert(config.ENABLE_CLOCK_EXPIRATION_FLAG)
+    clock_expiration_period_finish = \
+        utils.millis() + config.CLOCK_EXPIRATION_PERIOD
+
 
 def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
     """
-    Receives ArtNet data from udp_ip:udp_port, translates to Sendero-Wireless-Protocol
-    and redirects to broadcast_ip:broadcast_port.
-    """
+    Art-Net packet listener.
 
+    Receive ArtNet data from udp_ip:udp_port, translates to
+    Sendero-Wireless-Protocol and redirects to broadcast_ip:broadcast_port.
+    """
     print(("Listening in {0}:{1} and redirecting to " + config.BROADCAST_IP +
            ":{2}...").format(udp_ip, udp_port, broadcast_port))
 
@@ -26,6 +50,8 @@ def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
     sock_broadcast.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     sock_broadcast.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 
+    global clock_expiration_period_finish
+
     while True:
         try:
             # Receive data from an ArtNet Server
@@ -34,11 +60,22 @@ def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
             # Upack the ArtNet data
             message = utils.unpack_raw_artnet_packet(data)
 
+            # Generate the flags
+            flags = 0
+            if config.ENABLE_CLOCK_EXPIRATION_FLAG:
+                if (clock_expiration_period_finish and
+                        time.millis() < clock_expiration_period_finish):
+                    flags = flags | SYNC_EXPIRATION
+                else:
+                    clock_expiration_period_finish = None
+
             # Construct the Sendero-Data-Packet
-            packet = utils.sendero_data_packet(message['sequence'], message['data'])
+            packet = utils.sendero_data_packet(
+                message['sequence'], flags, message['data'])
 
             # Send to broadcast address
-            sock_broadcast.sendto(packet, (config.BROADCAST_IP, broadcast_port))
+            sock_broadcast.sendto(
+                packet, (config.BROADCAST_IP, broadcast_port))
 
             if int(message['sequence']) % 128 == 0:
                 print(
@@ -52,10 +89,7 @@ def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
 
 
 def send_dancing_sins(udp_ip, udp_port):
-    """
-    Streams the dancing sins to udp_ip:udp_port.
-    """
-
+    """Stream the dancing sins to udp_ip:udp_port."""
     print(("Sending dancing sins to {0}:{1} for {2} pixels...").format(
         udp_ip, udp_port, config.GLOBAL_PIXELS_QTY))
 
@@ -66,6 +100,8 @@ def send_dancing_sins(udp_ip, udp_port):
 
     t = 0
     seq = 0
+
+    global clock_expiration_period_finish
 
     while True:
 
@@ -79,13 +115,24 @@ def send_dancing_sins(udp_ip, udp_port):
         for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
             message[i:i + 3] = color
 
-        packet = utils.sendero_data_packet(seq, message)
+        flags = 0
+        if config.ENABLE_CLOCK_EXPIRATION_FLAG:
+            if (clock_expiration_period_finish and
+                    utils.millis() < clock_expiration_period_finish):
+                flags = flags | SYNC_EXPIRATION
+            else:
+                clock_expiration_period_finish = None
+
+        packet = utils.sendero_data_packet(seq, flags, message)
+
+
+        print(struct.unpack("<iBB{0}B".format(3 * config.GLOBAL_PIXELS_QTY), packet)[2])
 
         sock.sendto(packet, (udp_ip, udp_port))
 
         seq = utils.increment_seq(seq)
-        t += 0.042
-        time.sleep(0.042)
+        t += 0.04167
+        time.sleep(0.04167)
 
         if seq % 128 == 0:
             print(

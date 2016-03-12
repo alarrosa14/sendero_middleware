@@ -1,6 +1,5 @@
-
 """
-Configuration Module
+Configuration Module.
 
 Stores all the configurable settings.
 Sections:
@@ -40,6 +39,9 @@ PLAYBACK_TIME_DELAY = 200
 
 SEQ_MAX = 256
 
+ENABLE_CLOCK_EXPIRATION_FLAG = True
+CLOCK_EXPIRATION_PERIOD = 3000
+
 ARTNET_HEADER = b'Art-Net\x00'
 
 
@@ -52,15 +54,11 @@ DEFAULT_DEVICE_MANAGED_PIXELS_QTY = 8
 GLOBAL_PIXELS_QTY = 91
 
 DEVICE_CONFIG = {
-    1: {
-        "Device.managedPixelsQty": 8,
-        "Device.firstPixel": 0
-    },
-    2: {
-        "Device.managedPixelsQty": 8,
-        "Device.firstPixel": 0
-    },
     3: {
+        "Device.managedPixelsQty": 8,
+        "Device.firstPixel": 0
+    },
+    4: {
         "Device.managedPixelsQty": 8,
         "Device.firstPixel": 0
     }
@@ -74,7 +72,9 @@ GLOBAL_CONFIG = {
 
 def is_allowed_device(device_id):
     """
-    Returns TRUE if the device with id = device_id is into the DEVICE_CONFIG dict.
-    FALSE in other case.
+    Device is allowed.
+
+    Return TRUE if the device with id = device_id is into the DEVICE_CONFIG
+    dict. Return FALSE in other case.
     """
     return device_id in DEVICE_CONFIG

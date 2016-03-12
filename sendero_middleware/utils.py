@@ -1,3 +1,5 @@
+"""Return the square of n."""
+
 from sendero_middleware import config
 import struct
 import time
@@ -7,12 +9,12 @@ initial_millis = int(round(time.time() * 1000))
 
 
 def millis():
-    """ Returns the time in miliseconds elapsed from the application started running."""
+    """Return the time in miliseconds elapsed from the application started."""
     return int(round(time.time() * 1000)) - initial_millis
 
 
 def represents_int(s):
-    """ Try to cast s """
+    """Try to cast s."""
     try:
         int(s)
         return True
@@ -44,12 +46,12 @@ def unpack_raw_artnet_packet(raw_data):
     return packet
 
 
-def sendero_data_packet(seq, payload):
+def sendero_data_packet(seq, flags, payload):
     """ Constructs a Sendero-Wireless-Protocol data packet """
     # XXX: This packet should have the SENDERO header
-    return struct.pack("<iB{0}B".format(3 * config.GLOBAL_PIXELS_QTY),
+    return struct.pack("<iBB{0}B".format(3 * config.GLOBAL_PIXELS_QTY),
                        int(millis() + config.PLAYBACK_TIME_DELAY),
-                       seq,
+                       seq, flags,
                        *payload)
 
 

@@ -3,7 +3,7 @@ import threading
 import time
 import struct
 
-from sendero_middleware import config, utils
+from sendero_middleware import config, utils, streaming
 
 REQUEST_CLOCK = 1
 CLOCK_CORRECTION_OFFSET = 2
@@ -227,6 +227,10 @@ def device_server_worker():
                                 connection_socket=sock_tcp, active=True)
 
                 add_device(device_id, device)
+
+                if config.ENABLE_CLOCK_EXPIRATION_FLAG:
+                    streaming.notify_sync_expiration()
+
                 print("New device registered: {0}".format(device))
 
             else:
