@@ -25,7 +25,6 @@ BROADCAST_IP = "255.255.255.255"
 
 STATS_REQUEST_INTERVAL = 3600
 KEEP_ALIVE_INTERVAL = 10
-
 REGISTRATION_PORT = 8888
 CONNECTION_PORT = 8889
 
@@ -34,27 +33,32 @@ CONNECTION_PORT = 8889
 # #########################################
 
 ARTNET_MAX_PACKAGE_LEN = 1024
-
 PLAYBACK_TIME_DELAY = 200
-
 SEQ_MAX = 256
-
 ENABLE_CLOCK_EXPIRATION_FLAG = True
 CLOCK_EXPIRATION_PERIOD = 3000
-
 ARTNET_HEADER = b'Art-Net\x00'
 
+# #########################################
+# Clock Sync
+# #########################################
+
+OFFSET_SIGMA = 5 # ms
+EXPIRATION_PERDIOD = 60*1000 # ms
 
 # #########################################
 # Device Management
 # #########################################
 
 DEFAULT_DEVICE_MANAGED_PIXELS_QTY = 8
-
 GLOBAL_PIXELS_QTY = 91
 
 DEVICE_CONFIG = {
-    3: {
+    1: {
+        "Device.managedPixelsQty": 8,
+        "Device.firstPixel": 0
+    },
+    2: {
         "Device.managedPixelsQty": 8,
         "Device.firstPixel": 0
     },
@@ -66,7 +70,10 @@ DEVICE_CONFIG = {
 
 GLOBAL_CONFIG = {
     "Global.pixelsQty": GLOBAL_PIXELS_QTY,
-    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL * 2
+    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL * 2,
+    "Streaming.playbackTimeDelay": PLAYBACK_TIME_DELAY,
+    "ClockSync.offsetSigma": OFFSET_SIGMA,
+    "ClockSync.expirationPeriod": EXPIRATION_PERDIOD
 }
 
 
