@@ -126,7 +126,7 @@ def send_dancing_sins(udp_ip, udp_port):
         packet = utils.sendero_data_packet(seq, flags, message)
 
 
-        print(struct.unpack("<iBB{0}B".format(3 * config.GLOBAL_PIXELS_QTY), packet)[2])
+        # print(struct.unpack("<iBB{0}B".format(3 * config.GLOBAL_PIXELS_QTY), packet)[2])
 
         sock.sendto(packet, (udp_ip, udp_port))
 

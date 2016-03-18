@@ -55,6 +55,8 @@ class Device:
             initial_packet_payload += "{0}:{1} ".format(key, value)
         initial_packet_payload += "\0"
 
+        print(initial_packet_payload)
+
         self.send_control_packet(True, False, True, False, False, False, bytes(
             initial_packet_payload, encoding="ASCII"))
 
