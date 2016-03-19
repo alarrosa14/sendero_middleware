@@ -9,7 +9,7 @@ from socket import (
 import math
 import time
 
-from sendero_middleware import config, utils
+from sendero_middleware import config, utils, networking
 
 SYNC_EXPIRATION = 1
 
@@ -87,16 +87,12 @@ def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
             sock_broadcast.close()
             sys.exit()
 
-
-def send_dancing_sins(udp_ip, udp_port):
+def send_dancing_sins():
     """Stream the dancing sins to udp_ip:udp_port."""
     print(("Sending dancing sins to {0}:{1} for {2} pixels...").format(
-        udp_ip, udp_port, config.GLOBAL_PIXELS_QTY))
+        config.STREAMING_DST_IP, config.STREAMING_DST_PORT, config.GLOBAL_PIXELS_QTY))
 
     message = [0] * 3 * config.GLOBAL_PIXELS_QTY
-
-    sock = socket(AF_INET, SOCK_DGRAM)
-    sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 
     t = 0
     seq = 0
@@ -124,15 +120,59 @@ def send_dancing_sins(udp_ip, udp_port):
                 clock_expiration_period_finish = None
 
         packet = utils.sendero_data_packet(seq, flags, message)
-
-
-        # print(struct.unpack("<iBB{0}B".format(3 * config.GLOBAL_PIXELS_QTY), packet)[2])
-
-        sock.sendto(packet, (udp_ip, udp_port))
+        networking.send_streaming_packet(packet)
 
         seq = utils.increment_seq(seq)
-        t += 0.04167
-        time.sleep(0.04167)
+        t += config.FRAME_RATE
+        time.sleep(config.FRAME_RATE)
+
+        if seq % 128 == 0:
+            print(
+                "Sin - Current sequence number/time: "
+                "{0} - {1}".format(seq, utils.millis()))
+
+
+def send_flashing_lights():
+    """Stream the dancing sins to udp_ip:udp_port."""
+    print(("Sending flashing lights to {0}:{1} for {2} pixels...").format(
+        config.STREAMING_DST_IP, config.STREAMING_DST_PORT, config.GLOBAL_PIXELS_QTY))
+
+    message = [0] * 3 * config.GLOBAL_PIXELS_QTY
+
+    t = 0
+    seq = 0
+
+    global clock_expiration_period_finish
+
+    while True:
+
+        # Uncomment the line below to send a package on each key press
+        # input()
+        r = int(255 * (math.sin(t) + 1) / 2)
+        g = int(255 * (math.sin(t + 3) + 1) / 2)
+        b = int(255 * (math.sin(t + 4) + 1) / 2)
+        color = [r, g, b]
+
+        for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+            if (t < config.FRAMES_PER_SECOND):
+                message[i:i + 3] = [255,255,255]
+            else:
+                message[i:i + 3] = [0, 0, 0]
+
+        flags = 0
+        if config.ENABLE_CLOCK_EXPIRATION_FLAG:
+            if (clock_expiration_period_finish and
+                    utils.millis() < clock_expiration_period_finish):
+                flags = flags | SYNC_EXPIRATION
+            else:
+                clock_expiration_period_finish = None
+
+        packet = utils.sendero_data_packet(seq, flags, message)
+        networking.send_streaming_packet(packet)
+
+        seq = utils.increment_seq(seq)
+        t = (t + 1) % (config.FRAMES_PER_SECOND*2) 
+        time.sleep(config.FRAME_RATE)
 
         if seq % 128 == 0:
             print(

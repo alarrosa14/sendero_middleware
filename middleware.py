@@ -51,9 +51,11 @@ if (len(sys.argv) > 1):
     if (sys.argv[1] == "devserver"):
         devices.listen_for_devices()
         if len(sys.argv) > 2 and sys.argv[2] == "sin":
-            streaming.send_dancing_sins(config.BROADCAST_IP, config.BROADCAST_PORT)
+            streaming.send_dancing_sins()
+        if len(sys.argv) > 2 and sys.argv[2] == "flash":
+            streaming.send_flashing_lights()
         if len(sys.argv) > 2 and sys.argv[2] == "artnet":
-            streaming.listen_and_redirect_artnet_packets(config.UDP_IP, config.UDP_PORT, config.BROADCAST_PORT)
+            streaming.listen_and_redirect_artnet_packets(config.UDP_IP, config.UDP_PORT, config.STREAMING_DST_PORT)
 
     # ##########################################################################################################
     # Prod-Server Mode
