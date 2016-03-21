@@ -7,8 +7,6 @@ from socket import (
     socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST)
 
 import math
-import time
-
 from sendero_middleware import config, utils, networking
 
 SYNC_EXPIRATION = 1
@@ -38,7 +36,7 @@ def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
     Receive ArtNet data from udp_ip:udp_port, translates to
     Sendero-Wireless-Protocol and redirects to broadcast_ip:broadcast_port.
     """
-    print(("Listening in {0}:{1} and redirecting to " + config.BROADCAST_IP +
+    print(("Listening in {0}:{1} and redirecting to " + "multicast_group" +
            ":{2}...").format(udp_ip, udp_port, broadcast_port))
 
     # Socket to receive from Sendero Server
@@ -64,18 +62,13 @@ def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
             flags = 0
             if config.ENABLE_CLOCK_EXPIRATION_FLAG:
                 if (clock_expiration_period_finish and
-                        time.millis() < clock_expiration_period_finish):
+                        utils.millis() < clock_expiration_period_finish):
                     flags = flags | SYNC_EXPIRATION
                 else:
                     clock_expiration_period_finish = None
 
             # Construct the Sendero-Data-Packet
-            packet = utils.sendero_data_packet(
-                message['sequence'], flags, message['data'])
-
-            # Send to broadcast address
-            sock_broadcast.sendto(
-                packet, (config.BROADCAST_IP, broadcast_port))
+            networking.send_streaming_packet(message['sequence'], flags, message['data'])
 
             if int(message['sequence']) % 128 == 0:
                 print(
@@ -89,8 +82,8 @@ def listen_and_redirect_artnet_packets(udp_ip, udp_port, broadcast_port):
 
 def send_dancing_sins():
     """Stream the dancing sins to udp_ip:udp_port."""
-    print(("Sending dancing sins to {0}:{1} for {2} pixels...").format(
-        config.STREAMING_DST_IP, config.STREAMING_DST_PORT, config.GLOBAL_PIXELS_QTY))
+    print("Sending dancing sins...")
+        
 
     message = [0] * 3 * config.GLOBAL_PIXELS_QTY
 
@@ -119,8 +112,7 @@ def send_dancing_sins():
             else:
                 clock_expiration_period_finish = None
 
-        packet = utils.sendero_data_packet(seq, flags, message)
-        networking.send_streaming_packet(packet)
+        networking.send_streaming_packet(seq, flags, message)
 
         seq = utils.increment_seq(seq)
         t += config.FRAME_RATE
@@ -134,8 +126,7 @@ def send_dancing_sins():
 
 def send_flashing_lights():
     """Stream the dancing sins to udp_ip:udp_port."""
-    print(("Sending flashing lights to {0}:{1} for {2} pixels...").format(
-        config.STREAMING_DST_IP, config.STREAMING_DST_PORT, config.GLOBAL_PIXELS_QTY))
+    print("Sending flashing lights...")
 
     message = [0] * 3 * config.GLOBAL_PIXELS_QTY
 
@@ -167,8 +158,7 @@ def send_flashing_lights():
             else:
                 clock_expiration_period_finish = None
 
-        packet = utils.sendero_data_packet(seq, flags, message)
-        networking.send_streaming_packet(packet)
+        networking.send_streaming_packet(seq, flags, message)
 
         seq = utils.increment_seq(seq)
         t = (t + 1) % (config.FRAMES_PER_SECOND*2) 

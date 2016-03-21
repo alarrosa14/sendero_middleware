@@ -49,7 +49,7 @@ def unpack_raw_artnet_packet(raw_data):
 def sendero_data_packet(seq, flags, payload):
     """ Constructs a Sendero-Wireless-Protocol data packet """
     # XXX: This packet should have the SENDERO header
-    return struct.pack("<iBB{0}B".format(3 * config.GLOBAL_PIXELS_QTY),
+    return struct.pack("<iBB{0}B".format(len(payload)),
                        int(millis() + config.PLAYBACK_TIME_DELAY),
                        seq, flags,
                        *payload)

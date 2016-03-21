@@ -1,14 +1,109 @@
 import socket
-from sendero_middleware import config
+import time
+from sendero_middleware import config, utils
 from socket import (
-	socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, IPPROTO_UDP)
+	socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, IPPROTO_UDP, IPPROTO_IP, IP_MULTICAST_TTL)
 
-if config.MULTICAST_ENABLED:
-	sock = socket(AF_INET, SOCK_DGRAM, socket.IPPROTO_UDP)
-	sock.setsockopt(IPPROTO_IP, IP_MULTICAST_TTL, 1)
-else:
-	sock = socket(AF_INET, SOCK_DGRAM)
-	sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+multicast_group_data = {
+	0: {
+		"pixels": config.GLOBAL_PIXELS_QTY, 
+		"ip": config.STREAMING_MULTICAST_DST_BASE_IP,
+		"first_pixel": 0
+	}
+}
 
-def send_streaming_packet(packet):
-	sock.sendto(packet, (config.STREAMING_DST_IP, config.STREAMING_DST_PORT))
+# calculate multicast groups
+
+if config.MULTICAST_GROUPS_QTY != 1:
+	ideal_qty = config.GLOBAL_PIXELS_QTY/config.MULTICAST_GROUPS_QTY
+	sorted_device_configs = config.get_sorted_device_configs()
+
+	pixels_count = 0
+	group = 0
+	first_group_pixel = 0
+	for k, v in sorted_device_configs:
+		managed_pixels = v[config.DeviceKeys.MANAGED_PIXELS_QTY]
+		pixel_index = v[config.DeviceKeys.FIRST_PIXEL]
+		if pixels_count + managed_pixels >= ideal_qty:
+			# update group data
+			multicast_group_data[group] = {}
+			multicast_group_data[group]["pixels"] = pixels_count
+			multicast_group_data[group]["first_pixel"] = first_group_pixel
+			# next group
+			group += 1 
+			first_group_pixel = pixel_index
+			pixels_count = managed_pixels
+		else:
+			pixels_count += managed_pixels
+
+	print(group)
+	multicast_group_data[group] = {}
+	multicast_group_data[group]["pixels"] = pixels_count
+	multicast_group_data[group]["first_pixel"] = first_group_pixel
+
+groups_qty = len(multicast_group_data.items())
+sorted_multicast_group_data = sorted(multicast_group_data.items(), key=lambda x: x[0])
+
+def get_multicast_ip_for_group(id):
+	mip = config.STREAMING_MULTICAST_DST_BASE_IP
+	last_point_index = mip.rfind('.') + 1
+	return mip[:last_point_index] + str(int(mip[last_point_index:]) + id)
+
+# calculate multicast groups ips
+for group, data in multicast_group_data.items():
+	ip = get_multicast_ip_for_group(group)
+	data["ip"] = ip
+
+print("\nPartition in {0} multicast groups.\n{1}\n".format(len(multicast_group_data.items()), multicast_group_data))
+
+# create socket
+sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+sock.setsockopt(IPPROTO_IP, IP_MULTICAST_TTL, 1)
+
+def get_multicast_pixels_qty_for_device(id):
+	group = get_multicast_group_for_device(id)
+	print(multicast_group_data[group])
+	return multicast_group_data[group]["pixels"]
+
+def get_multicast_first_pixel_for_device(id):
+	group = get_multicast_group_for_device(id)
+	group_first_pixel = multicast_group_data[group]["first_pixel"]
+	return group_first_pixel
+
+def get_multicast_group_for_device(id):
+	first_pixel_of_device = config.DEVICE_CONFIG[id][config.DeviceKeys.FIRST_PIXEL]
+	for group, data in sorted_multicast_group_data:
+		first_group_pixel = data["first_pixel"]
+		if first_pixel_of_device < first_group_pixel:
+			return group - 1
+		elif first_pixel_of_device == first_group_pixel:
+			return group
+	return sorted_multicast_group_data[-1][0]
+
+def get_multicast_ip_for_device(id):
+	return multicast_group_data[get_multicast_group_for_device(id)]["ip"]
+
+def send_streaming_packet(seq, flags, payload):
+	if groups_qty == 1:
+		packet = utils.sendero_data_packet(seq, flags, payload)
+		sock.sendto(packet, (multicast_group_data[0]["ip"], config.STREAMING_DST_PORT))
+	else:
+		multicast_payloads = []
+
+		last_pixel_index = 0
+		for group, data in sorted_multicast_group_data:
+			if group == 0:
+				continue
+			pixel_index = data["first_pixel"]
+			multicast_payloads.append(payload[last_pixel_index*3:pixel_index*3])
+			last_pixel_index = pixel_index
+
+		# last partition	
+		multicast_payloads.append(payload[last_pixel_index*3: config.GLOBAL_PIXELS_QTY*3])
+
+		group = 0
+		for m_payload in multicast_payloads:
+			packet = utils.sendero_data_packet(seq, flags, m_payload)
+			sock.sendto(packet, (multicast_group_data[group]["ip"], config.STREAMING_DST_PORT))
+			time.sleep(config.DELAY_BETWEEN_MULTICAST_PACKETS)
+			group += 1

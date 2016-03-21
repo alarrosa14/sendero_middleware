@@ -3,7 +3,7 @@ import threading
 import time
 import struct
 
-from sendero_middleware import config, utils, streaming
+from sendero_middleware import config, utils, streaming, networking
 
 REQUEST_CLOCK = 1
 CLOCK_CORRECTION_OFFSET = 2
@@ -11,7 +11,6 @@ CONFIGURATION = 4
 CLOSE_CONNECTION = 8
 REQUEST_STATS = 16
 KEEP_ALIVE = 32
-
 
 class Device:
 
@@ -53,6 +52,21 @@ class Device:
         # Global configs
         for key, value in config.GLOBAL_CONFIG.items():
             initial_packet_payload += "{0}:{1} ".format(key, value)
+
+        # Add Multicast Group IP for device
+        multicast_ip = networking.get_multicast_ip_for_device(self.id)
+        initial_packet_payload += "{0}:{1} ".format(config.DeviceKeys.MULTICAST_GROUP_IP, multicast_ip)
+        print(multicast_ip)
+
+        # Set first pixel of multicast group
+        first_multicast_pixel = networking.get_multicast_first_pixel_for_device(self.id)
+        initial_packet_payload += "{0}:{1} ".format(config.DeviceKeys.MULTICAST_GROUP_FIRST_PIXEL, first_multicast_pixel)
+
+        # Add Multicast Group Total Pixels for device
+        pixels_qty = networking.get_multicast_pixels_qty_for_device(self.id)
+        initial_packet_payload += "{0}:{1}".format(config.DeviceKeys.STREAMING_PIXELS_QTY, pixels_qty)
+        print(pixels_qty)
+
         initial_packet_payload += "\0"
 
         print(initial_packet_payload)
