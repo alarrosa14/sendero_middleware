@@ -7,6 +7,7 @@ from socket import (
     socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST)
 
 import math
+import time
 from sendero_middleware import config, utils, networking
 
 SYNC_EXPIRATION = 1

@@ -5,12 +5,15 @@ import struct
 import time
 
 """ Initial timestamp """
-initial_millis = int(round(time.time() * 1000))
 
+def unsigned(x):
+    return x & 0xFFFFFFFF
+
+initial_millis = unsigned(int(round(time.time() * 1000)))
 
 def millis():
     """Return the time in miliseconds elapsed from the application started."""
-    return int(round(time.time() * 1000)) - initial_millis
+    return unsigned(int(round(time.time() * 1000)) - initial_millis)
 
 
 def represents_int(s):
@@ -49,8 +52,10 @@ def unpack_raw_artnet_packet(raw_data):
 def sendero_data_packet(seq, flags, payload):
     """ Constructs a Sendero-Wireless-Protocol data packet """
     # XXX: This packet should have the SENDERO header
-    return struct.pack("<iBB{0}B".format(len(payload)),
-                       int(millis() + config.PLAYBACK_TIME_DELAY),
+    t = unsigned(millis() + config.PLAYBACK_TIME_DELAY)
+    print(t)
+    return struct.pack("<IBB{0}B".format(len(payload)),
+                       t,
                        seq, flags,
                        *payload)
 

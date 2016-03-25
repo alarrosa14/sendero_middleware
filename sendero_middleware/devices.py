@@ -25,9 +25,7 @@ class Device:
         self.connection_established = True
         self.raddr = self.connection_socket.getpeername()
 
-        server_clock_before_send = utils.millis()
         self.set_initial_configs()
-        self.synchronize_device_clock(server_clock_before_send)
 
     def __del__(self):
         if self.connection_socket:
@@ -71,7 +69,7 @@ class Device:
 
         print(initial_packet_payload)
 
-        self.send_control_packet(True, False, True, False, False, False, bytes(
+        self.send_control_packet(True, False, True, True, False, False, bytes(
             initial_packet_payload, encoding="ASCII"))
 
     def request_clock(self):
@@ -79,7 +77,7 @@ class Device:
 
     def send_clock_correction_offset(self, offset=0):
         self.send_control_packet(
-            False, True, False, True, False, False, struct.pack('i', offset))
+            False, True, False, True, False, False, struct.pack('I', offset))
 
     def synchronize_device_clock(self, server_clock_before_send):
         sendero_header = self.connection_socket.recv(8)

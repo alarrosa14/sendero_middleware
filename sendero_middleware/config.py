@@ -77,7 +77,11 @@ DEVICE_CONFIG = {
     },
     7: {
         DeviceKeys.FIRST_PIXEL: 50,
-        DeviceKeys.MANAGED_PIXELS_QTY: 41,
+        DeviceKeys.MANAGED_PIXELS_QTY: 10,
+    },
+    8: {
+        DeviceKeys.FIRST_PIXEL: 60,
+        DeviceKeys.MANAGED_PIXELS_QTY: 10,
     }
 }
 
