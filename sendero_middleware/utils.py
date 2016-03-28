@@ -53,7 +53,6 @@ def sendero_data_packet(seq, flags, payload):
     """ Constructs a Sendero-Wireless-Protocol data packet """
     # XXX: This packet should have the SENDERO header
     t = unsigned(millis() + config.PLAYBACK_TIME_DELAY)
-    print(t)
     return struct.pack("<IBB{0}B".format(len(payload)),
                        t,
                        seq, flags,

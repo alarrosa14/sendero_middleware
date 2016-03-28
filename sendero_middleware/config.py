@@ -70,28 +70,44 @@ class DeviceKeys:
 
 DEFAULT_DEVICE_MANAGED_PIXELS_QTY = 8
 
-DEVICE_CONFIG = {
-    6: {
-        DeviceKeys.FIRST_PIXEL: 0,
-        DeviceKeys.MANAGED_PIXELS_QTY: 50,
-    },
-    7: {
-        DeviceKeys.FIRST_PIXEL: 50,
-        DeviceKeys.MANAGED_PIXELS_QTY: 10,
-    },
-    8: {
-        DeviceKeys.FIRST_PIXEL: 60,
-        DeviceKeys.MANAGED_PIXELS_QTY: 10,
+# DEVICE_CONFIG = {
+#     6: {
+#         DeviceKeys.FIRST_PIXEL: 0,
+#         DeviceKeys.MANAGED_PIXELS_QTY: 30,
+#     },
+#     7: {
+#         DeviceKeys.FIRST_PIXEL: 30,
+#         DeviceKeys.MANAGED_PIXELS_QTY: 30,
+#     },
+#     8: {
+#         DeviceKeys.FIRST_PIXEL: 60,
+#         DeviceKeys.MANAGED_PIXELS_QTY: 31,
+#     }
+# }
+
+# # calculate global pixels qty
+
+# GLOBAL_PIXELS_QTY = 0
+# for k, v in DEVICE_CONFIG.items():
+#     GLOBAL_PIXELS_QTY += v[DeviceKeys.MANAGED_PIXELS_QTY]
+
+# print(GLOBAL_PIXELS_QTY)
+
+GLOBAL_PIXELS_QTY = 90
+DEVICE_CONFIG = {}
+device = 0
+for pixel in range(0,90,8):
+    DEVICE_CONFIG[device] = {
+        DeviceKeys.FIRST_PIXEL: pixel,
+        DeviceKeys.MANAGED_PIXELS_QTY: 8,
     }
-}
+    device += 1
 
-# calculate global pixels qty
+DEVICE_CONFIG[device-1] = {
+        DeviceKeys.FIRST_PIXEL: 88,
+        DeviceKeys.MANAGED_PIXELS_QTY: 3,
+    }
 
-GLOBAL_PIXELS_QTY = 0
-for k, v in DEVICE_CONFIG.items():
-    GLOBAL_PIXELS_QTY += v[DeviceKeys.MANAGED_PIXELS_QTY]
-
-print(GLOBAL_PIXELS_QTY)
 
 GLOBAL_CONFIG = {
     "Global.pixelsQty": GLOBAL_PIXELS_QTY,
