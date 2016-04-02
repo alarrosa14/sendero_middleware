@@ -50,8 +50,8 @@ ARTNET_HEADER = b'Art-Net\x00'
 # Clock Sync
 # #########################################
 
-OFFSET_SIGMA = 3 # ms
-EXPIRATION_PERDIOD = 60*1000 # ms
+OFFSET_SIGMA = 3  # ms
+EXPIRATION_PERDIOD = 60*1000  # ms
 OFFSET_MEAN_CALIBRATION_CONSECUTIVE_PACKETS = 2*FRAMES_PER_SECOND
 OFFSET_MEAN_CALIBRATION_DERIVATIVE_THRESHOLD = 0.001
 FIRST_PACKETS_IGNORE_QTY = 3*FRAMES_PER_SECOND
@@ -63,6 +63,7 @@ FIRST_PACKETS_IGNORE_QTY = 3*FRAMES_PER_SECOND
 class DeviceKeys:
     MANAGED_PIXELS_QTY = "Device.managedPixelsQty"
     FIRST_PIXEL = "Device.firstPixel"
+    COLOR_ORDER = "Device.colorOrder"
     MULTICAST_GROUP_IP = "Streaming.multicastGroupIp"
     STREAMING_PIXELS_QTY = "Streaming.pixelsQty"
     MULTICAST_GROUP_FIRST_PIXEL = "Streaming.multicastGroupFirstPixel"
@@ -70,18 +71,15 @@ class DeviceKeys:
 
 DEFAULT_DEVICE_MANAGED_PIXELS_QTY = 8
 
+GLOBAL_PIXELS_QTY = 91
+
+# Default color order is GRB. 
+# Set DeviceKeys.COLOR_ORDER if you need to change this
 # DEVICE_CONFIG = {
-#     6: {
-#         DeviceKeys.FIRST_PIXEL: 0,
-#         DeviceKeys.MANAGED_PIXELS_QTY: 30,
-#     },
-#     7: {
-#         DeviceKeys.FIRST_PIXEL: 30,
-#         DeviceKeys.MANAGED_PIXELS_QTY: 30,
-#     },
 #     8: {
-#         DeviceKeys.FIRST_PIXEL: 60,
-#         DeviceKeys.MANAGED_PIXELS_QTY: 31,
+#         DeviceKeys.FIRST_PIXEL: 0,
+#         DeviceKeys.MANAGED_PIXELS_QTY: 8,
+#         DeviceKeys.COLOR_ORDER: ['BRG']*8
 #     }
 # }
 
@@ -93,20 +91,21 @@ DEFAULT_DEVICE_MANAGED_PIXELS_QTY = 8
 
 # print(GLOBAL_PIXELS_QTY)
 
-GLOBAL_PIXELS_QTY = 90
+
 DEVICE_CONFIG = {}
 device = 0
-for pixel in range(0,90,8):
+for pixel in range(0, 91, 8):
     DEVICE_CONFIG[device] = {
         DeviceKeys.FIRST_PIXEL: pixel,
         DeviceKeys.MANAGED_PIXELS_QTY: 8,
+        DeviceKeys.COLOR_ORDER: ['BRG']*8
     }
     device += 1
 
 DEVICE_CONFIG[device-1] = {
-        DeviceKeys.FIRST_PIXEL: 88,
-        DeviceKeys.MANAGED_PIXELS_QTY: 3,
-    }
+    DeviceKeys.FIRST_PIXEL: 88,
+    DeviceKeys.MANAGED_PIXELS_QTY: 4,
+}
 
 
 GLOBAL_CONFIG = {
@@ -115,8 +114,10 @@ GLOBAL_CONFIG = {
     "Streaming.playbackTimeDelay": PLAYBACK_TIME_DELAY,
     "ClockSync.offsetSigma": OFFSET_SIGMA,
     "ClockSync.expirationPeriod": EXPIRATION_PERDIOD,
-    "ClockSync.offsetMeanCalibrationConsecutivePackets": OFFSET_MEAN_CALIBRATION_CONSECUTIVE_PACKETS,
-    "ClockSync.offsetMeanCalibrationDerivativeThreshold": OFFSET_MEAN_CALIBRATION_DERIVATIVE_THRESHOLD,
+    "ClockSync.offsetMeanCalibrationConsecutivePackets":
+        OFFSET_MEAN_CALIBRATION_CONSECUTIVE_PACKETS,
+    "ClockSync.offsetMeanCalibrationDerivativeThreshold":
+        OFFSET_MEAN_CALIBRATION_DERIVATIVE_THRESHOLD,
     "ClockSync.firstPacketsIgnoreQty": FIRST_PACKETS_IGNORE_QTY
 }
 
@@ -129,6 +130,7 @@ def is_allowed_device(device_id):
     dict. Return FALSE in other case.
     """
     return device_id in DEVICE_CONFIG
+
 
 def get_sorted_device_configs():
     return sorted(DEVICE_CONFIG.items(), key=lambda x: x[0])

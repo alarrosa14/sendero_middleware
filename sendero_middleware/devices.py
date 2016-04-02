@@ -45,7 +45,8 @@ class Device:
 
         # Device configs
         for key, value in config.DEVICE_CONFIG[self.id].items():
-            initial_packet_payload += "{0}:{1} ".format(key, value)
+            initial_packet_payload += "{0}:{1} ".format(
+                key, (",".join(value) if type(value) == list else value))
 
         # Global configs
         for key, value in config.GLOBAL_CONFIG.items():
