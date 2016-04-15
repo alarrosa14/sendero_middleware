@@ -1,57 +1,52 @@
 # Sendero Middleware #
 
-#### < Work in progress ... >
-
 ## Introduction
 
-It's a middleware between an ArtNet Server (like Sendero Server) and the [Sendero-Wireless-Module](https://github.com/dernster/WirelessBondibar).
-
-In addition to translating [ArtNet](http://art-net.org.uk/) to Sendero-Wireless-Protocol, this middleware is responsible for the device management,
+It's a middleware (ẁritten in Python3) between an ArtNet Server (like Sendero Server) and the Sendero-Wireless-Module.
+In addition to translating ArtNet to Sendero-Wireless-Protocol, this middleware is responsible for the device management,
 the control server and a set of streaming tests.
 
 It offers the following execution modes:
 
-- sin:          Streams a sin-controlled lighting pattern in broadcast mode.
-                Accepts the streaming port as a parameter.
+- `devserver`:    Starts a straming session with device management.
+                  Allows an extra parameter to send a simulated streaming among sin|flash|artnet.
 
-- artnet:       Receives, adapts and redirects ArtNet packets in broadcast mode.
 
-- devserver:    Starts a straming session with device management.
-                Allows an extra parameter to send a simulated streaming.
+- `prodserver`:   Starts a streaming session with device management, control and keep-alive servers.
+                  Allows an extra parameter to send a simulated streaming.
 
-- prodserver:   Starts a streaming session with device management, control and keep-alive servers.
-                Allows an extra parameter to send a simulated streaming.
+Stream modes:
+
+- `sin`:          Streams a sin-controlled lighting pattern.
+
+- `flash`:        Streams a flash pattern in broadcast mode.
+
+- `artnet`:       Receives, adapts and redirects ArtNet packets.
+
+
                 
 ## Modules
 
-- config: Stores all the configurable settings.
+- `config`: Stores all the configurable settings.
 
-- streaming: Module responsible of the translation and redirection of Art-Net packets.
+- `streaming`: Module responsible of the translation and redirection of Art-Net packets.
 
-- utils: A set of utilitary methods for the whole app.
+- `utils`: A set of utilitary methods for the whole app.
 
-- devices: Device manager, is responsible for all the actions related to a wireless device. 
+- `devices`: Device manager, is responsible for all the actions related to a wireless device. 
 (Registering, Controlling, etc...)
+
+- `networking`: Used to manage multicast mode. The frame information can be sent in 2 modes: broadcast|multicast.
+              In broadcast mode, UDP broadcast IP is used (255.255.255.255) and all frame data is sent in just 1 packet.
+              For artworks containing a lot of pixels, the size of the packet can be divided using multicast. 
+              This can be enabled in `config.py`.
 
 ## Settings
 
-- ARTNET_HEADER = 'Art-Net\x00'
-- ARTNET_MAX_PACKAGE_LEN = 1024
-- BROADCAST_IP = '255.255.255.255'
-- BROADCAST_PORT = 7788
-- CONNECTION_PORT = 8889
-- DEFAULT_DEVICE_MANAGED_PIXELS_QTY = 8
-- DEVICE_CONFIG = {1: {'Device.firstPixel': 0, 'Device.managedPixelsQty'...
-- GLOBAL_CONFIG = {'ControlServer.keepAliveSeconds': 20, 'Global.pixelsQ...
-- GLOBAL_PIXELS_QTY = 91
-- KEEP_ALIVE_INTERVAL = 10
-- PLAYBACK_TIME_DELAY = 200
-- REGISTRATION_PORT = 8888
-- SEQ_MAX = 256
-- STATS_REQUEST_INTERVAL = 3600
-- UDP_IP = '0.0.0.0'
-- UDP_PORT = 7777
+All configurations are commented in the `config.py` module. 
+
 
 ## Invocation 
-
+```
 python3 middleware.py < execution mode > [extra params]
+```

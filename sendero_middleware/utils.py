@@ -4,6 +4,10 @@ from sendero_middleware import config
 import struct
 import time
 
+SEQ_MAX = 256
+ARTNET_HEADER = b'Art-Net\x00'
+
+
 """ Initial timestamp """
 
 def unsigned(x):
@@ -27,13 +31,13 @@ def represents_int(s):
 
 def increment_seq(current_seq):
     """ Increments the packet's sequence number taking into account the potencial unit overflow """
-    return ((current_seq + 1) % config.SEQ_MAX)
+    return ((current_seq + 1) % SEQ_MAX)
 
 
 def unpack_raw_artnet_packet(raw_data):
     """ Unpacks an ArtNet packet to create a Sendero-Wireless-Protocol packet """
 
-    if struct.unpack('!8s', raw_data[:8])[0] != config.ARTNET_HEADER:
+    if struct.unpack('!8s', raw_data[:8])[0] != ARTNET_HEADER:
         print("Received a non Art-Net packet")
         return None
 

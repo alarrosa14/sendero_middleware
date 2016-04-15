@@ -49,7 +49,7 @@ class Device:
                 key, (",".join(value) if type(value) == list else value))
 
         # Global configs
-        for key, value in config.GLOBAL_CONFIG.items():
+        for key, value in config.GLOBAL_DEVICES_CONFIGS.items():
             initial_packet_payload += "{0}:{1} ".format(key, value)
 
         # Add Multicast Group IP for device
@@ -243,9 +243,6 @@ def device_server_worker():
 
                 add_device(device_id, device)
 
-                if config.ENABLE_CLOCK_EXPIRATION_FLAG:
-                    streaming.notify_sync_expiration()
-
                 print("New device registered: {0}".format(device))
 
             else:
@@ -286,18 +283,21 @@ def keep_alive_worker():
 def listen_for_devices():
     print("Starting Device Registering thread...")
     t = threading.Thread(target=device_server_worker)
+    t.daemon = True
     t.start()
 
 
 def start_control_server():
     print("Starting Control Server thread...")
     t = threading.Thread(target=control_server_worker)
+    t.daemon = True
     t.start()
 
 
 def start_sending_keep_alive():
     print("Starting Keep Alive thread...")
     t = threading.Thread(target=keep_alive_worker)
+    t.daemon = True
     t.start()
 
 
