@@ -45,6 +45,8 @@ if (len(sys.argv) > 1):
             streaming.send_dancing_sins()
         if len(sys.argv) > 2 and sys.argv[2] == "flash":
             streaming.send_flashing_lights()
+        if len(sys.argv) > 2 and sys.argv[2] == "rgb":
+            streaming.send_rgb_lights()
         if len(sys.argv) > 2 and sys.argv[2] == "artnet":
             streaming.listen_and_redirect_artnet_packets(config.UDP_IP, config.UDP_PORT, config.STREAMING_DST_PORT)
 

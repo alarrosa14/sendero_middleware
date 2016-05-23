@@ -94,7 +94,7 @@ def send_dancing_sins():
         networking.send_streaming_packet(seq, flags, message)
 
         seq = utils.increment_seq(seq)
-        t += config.FRAME_RATE
+        t += 0.007#config.FRAME_RATE
         time.sleep(config.FRAME_RATE)
 
         if seq % 128 == 0:
@@ -131,6 +131,41 @@ def send_flashing_lights():
 
         seq = utils.increment_seq(seq)
         t = (t + 1) % (config.FRAMES_PER_SECOND * 2)
+        time.sleep(config.FRAME_RATE)
+
+        if seq % 128 == 0:
+            print(
+                "Sin - Current sequence number/time: "
+                "{0} - {1}".format(seq, utils.millis()))
+
+def send_rgb_lights():
+    """Stream the flashing rgb to udp_ip:udp_port."""
+    print("Sending rgb lights...")
+
+    message = [0] * 3 * config.GLOBAL_PIXELS_QTY
+    seq = 0
+    color = [255,0,0]
+
+    global clock_expiration_period_finish
+
+    while True:
+
+        # Uncomment the line below to send a package on each key press
+        # input()
+
+        for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+            message[i:i + 3] = color
+
+        flags = 0
+
+        networking.send_streaming_packet(seq, flags, message)
+
+        seq = utils.increment_seq(seq)
+
+        if seq % config.FRAMES_PER_SECOND == 0:
+            x = color.pop()
+            color = [x] + color
+
         time.sleep(config.FRAME_RATE)
 
         if seq % 128 == 0:

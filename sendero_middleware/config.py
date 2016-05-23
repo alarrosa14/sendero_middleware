@@ -178,10 +178,10 @@ for pixel in range(0, 91, 8):
     }
     device += 1
 
-DEVICE_CONFIG[device - 1] = {
-    DeviceKeys.FIRST_PIXEL: 88,
-    DeviceKeys.MANAGED_PIXELS_QTY: 4,
-}
+# DEVICE_CONFIG[device - 1] = {
+#     DeviceKeys.FIRST_PIXEL: 88,
+#     DeviceKeys.MANAGED_PIXELS_QTY: 4,
+# }
 
 """
 GLOBAL_DEVICES_CONFIGS are setted with most of the previous configs.
