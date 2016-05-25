@@ -78,29 +78,33 @@ def send_dancing_sins():
     global clock_expiration_period_finish
 
     while True:
+        try:
+            # Uncomment the line below to send a package on each key press
+            # input()
+            r = int(255 * (math.sin(t * 4.12456654) + 1) / 2)
+            g = 255 - int(255 * (math.sin(t * 5.313) + 1) / 2)
+            b = int(255 * (math.sin(t * 9.125412) + 1) / 2)
+            color = [r, g, b]
 
-        # Uncomment the line below to send a package on each key press
-        # input()
-        r = int(255 * (math.sin(t * 4.12456654) + 1) / 2)
-        g = 255 - int(255 * (math.sin(t * 5.313) + 1) / 2)
-        b = int(255 * (math.sin(t * 9.125412) + 1) / 2)
-        color = [r, g, b]
+            for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+                message[i:i + 3] = color
 
-        for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
-            message[i:i + 3] = color
+            flags = 0
 
-        flags = 0
+            networking.send_streaming_packet(seq, flags, message)
 
-        networking.send_streaming_packet(seq, flags, message)
+            seq = utils.increment_seq(seq)
+            t += 0.007#config.FRAME_RATE
+            time.sleep(config.FRAME_RATE)
 
-        seq = utils.increment_seq(seq)
-        t += 0.007#config.FRAME_RATE
-        time.sleep(config.FRAME_RATE)
-
-        if seq % 128 == 0:
-            print(
-                "Sin - Current sequence number/time: "
-                "{0} - {1}".format(seq, utils.millis()))
+            if seq % 128 == 0:
+                print(
+                    "Sin - Current sequence number/time: "
+                    "{0} - {1}".format(seq, utils.millis()))
+        except KeyboardInterrupt:
+            from sendero_middleware import devices
+            devices.request_statistics()
+            sys.exit()
 
 
 def send_flashing_lights():

@@ -17,7 +17,7 @@ Sections:
 """
 Used only when sending simulated 'sin' and 'flash' streams.
 """
-FRAMES_PER_SECOND = 24
+FRAMES_PER_SECOND = 30
 FRAME_RATE = 1.0 / FRAMES_PER_SECOND
 
 
@@ -144,7 +144,7 @@ class DeviceKeys:
 """
 The total amount of pixels to which color data is going to be sent for.
 """
-GLOBAL_PIXELS_QTY = 91
+GLOBAL_PIXELS_QTY = 8*12
 
 # Default color order is GRB.
 # Set DeviceKeys.COLOR_ORDER if you need to change this
@@ -170,9 +170,9 @@ DEVICE_CONFIG key must be the 'deviceId' as number
 """
 DEVICE_CONFIG = {}
 device = 0
-for pixel in range(0, 91, 8):
+for pixel in range(0, GLOBAL_PIXELS_QTY, 8):
     DEVICE_CONFIG[device] = {
-        DeviceKeys.FIRST_PIXEL: pixel,
+        DeviceKeys.FIRST_PIXEL: pixel, 
         DeviceKeys.MANAGED_PIXELS_QTY: 8,
         DeviceKeys.COLOR_ORDER: ['BRG'] * 8
     }
@@ -189,7 +189,7 @@ Should not be edited.
 """
 GLOBAL_DEVICES_CONFIGS = {
     "Global.pixelsQty": GLOBAL_PIXELS_QTY,
-    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL * 2,
+    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL,
     "Streaming.playbackTimeDelay": PLAYBACK_TIME_DELAY,
     "ClockSync.offsetSigma": OFFSET_SIGMA,
     "ClockSync.expirationPeriod": EXPIRATION_PERIOD,

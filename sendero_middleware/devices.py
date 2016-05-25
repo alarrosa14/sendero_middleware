@@ -123,12 +123,12 @@ class Device:
 
                     stats = dict(
                         [stat.split(':') for stat in stats_string.split()])
-                    print("### Statistics from {0} ###".format(self.id))
-                    print(stats)
-                    print("###########")
+                    # print("### Statistics from {0} ###".format(self.id))
+                    # print(stats)
+                    # print("###########")
                     stats_are_dirty = stats['Stats.dirty'] == 'True'
             time.sleep(0.5)
-        return stats
+        return (self.id, stats)
 
     def send_keep_alive(self):
         self.send_control_packet(False, False, False, False, False, True)
@@ -304,4 +304,13 @@ def start_sending_keep_alive():
 def request_statistics():
     print("Requesting statistics...")
     for d in list(devices_connected.values()):
-        d.request_stats()
+        stats = d.request_stats()
+        print("***************************************")
+        print(stats[0])
+        for k,v in stats[1].items():
+            print("{0}\t".format(k), end="")
+        print("")
+
+        for k,v in stats[1].items():
+            print("{0}\t".format(v), end="")
+        print("")
