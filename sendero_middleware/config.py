@@ -189,7 +189,7 @@ Should not be edited.
 """
 GLOBAL_DEVICES_CONFIGS = {
     "Global.pixelsQty": GLOBAL_PIXELS_QTY,
-    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL,
+    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL * 6,
     "Streaming.playbackTimeDelay": PLAYBACK_TIME_DELAY,
     "ClockSync.offsetSigma": OFFSET_SIGMA,
     "ClockSync.expirationPeriod": EXPIRATION_PERIOD,

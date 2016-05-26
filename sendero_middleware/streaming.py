@@ -74,10 +74,12 @@ def send_dancing_sins():
 
     t = 0
     seq = 0
+    packetsQty = 0
+    MAX_PACKETS = config.FRAMES_PER_SECOND * 60 * 20
 
     global clock_expiration_period_finish
 
-    while True:
+    while packetsQty != MAX_PACKETS:
         try:
             # Uncomment the line below to send a package on each key press
             # input()
@@ -92,6 +94,7 @@ def send_dancing_sins():
             flags = 0
 
             networking.send_streaming_packet(seq, flags, message)
+            packetsQty += 1
 
             seq = utils.increment_seq(seq)
             t += 0.007#config.FRAME_RATE
@@ -103,8 +106,16 @@ def send_dancing_sins():
                     "{0} - {1}".format(seq, utils.millis()))
         except KeyboardInterrupt:
             from sendero_middleware import devices
+            devices.worker_enabled = False
             devices.request_statistics()
+            networking.sock.close()
             sys.exit()
+
+    from sendero_middleware import devices
+    devices.worker_enabled = False
+    devices.request_statistics()
+    networking.sock.close()
+    sys.exit()
 
 
 def send_flashing_lights():

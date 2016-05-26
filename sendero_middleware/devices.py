@@ -200,12 +200,14 @@ def device_connected_qty():
     return res
 
 
+worker_enabled = True
+
 def device_server_worker():
     sock_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock_udp.bind((config.UDP_IP, config.REGISTRATION_PORT))
     sock_udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-    while True:
+    while worker_enabled:
         print("Listening for Device Registering UDP messages...")
         data, addr = sock_udp.recvfrom(100)
 
@@ -282,9 +284,9 @@ def keep_alive_worker():
 
 def listen_for_devices():
     print("Starting Device Registering thread...")
-    t = threading.Thread(target=device_server_worker)
-    t.daemon = True
-    t.start()
+    listening_thread = threading.Thread(target=device_server_worker)
+    listening_thread.daemon = True
+    listening_thread.start()
 
 
 def start_control_server():
