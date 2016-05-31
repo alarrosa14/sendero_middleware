@@ -75,7 +75,14 @@ def send_dancing_sins():
     t = 0
     seq = 0
     packetsQty = 0
-    MAX_PACKETS = config.FRAMES_PER_SECOND * 60 * 20
+    MAX_PACKETS = config.FRAMES_PER_SECOND * 60 * 5
+
+    from sendero_middleware import devices
+    while len(devices.devices_connected) != 12:
+        time.sleep(0.5)
+
+    print("All devices connected!")
+
 
     global clock_expiration_period_finish
 
@@ -105,12 +112,14 @@ def send_dancing_sins():
                     "Sin - Current sequence number/time: "
                     "{0} - {1}".format(seq, utils.millis()))
         except KeyboardInterrupt:
+            time.sleep(2)
             from sendero_middleware import devices
             devices.worker_enabled = False
             devices.request_statistics()
             networking.sock.close()
             sys.exit()
 
+    time.sleep(2)
     from sendero_middleware import devices
     devices.worker_enabled = False
     devices.request_statistics()

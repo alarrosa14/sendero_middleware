@@ -100,8 +100,9 @@ class Device:
 
     def request_stats(self):
         stats_are_dirty = True
+        success_count = 0
         stats = dict()
-        while stats_are_dirty:
+        while stats_are_dirty and success_count < 3:
             self.send_control_packet(False, False, False, False, True, False, b'')
             sendero_header = self.connection_socket.recv(8)
             if len(sendero_header) == 8:
@@ -127,6 +128,9 @@ class Device:
                     # print(stats)
                     # print("###########")
                     stats_are_dirty = stats['Stats.dirty'] == 'True'
+                    if not stats_are_dirty:
+                        success_count += 1
+
             time.sleep(0.5)
         return (self.id, stats)
 
@@ -305,14 +309,16 @@ def start_sending_keep_alive():
 
 def request_statistics():
     print("Requesting statistics...")
-    for d in list(devices_connected.values()):
+    first = True
+    rev = list(devices_connected.values())
+    for d in rev:
         stats = d.request_stats()
-        print("***************************************")
-        print(stats[0])
-        for k,v in stats[1].items():
-            print("{0}\t".format(k), end="")
-        print("")
+        if first:
+            for k,v in list(stats[1].items()):
+                print("{0}\t".format(k), end="")
+            print("")
+            first = False
 
-        for k,v in stats[1].items():
+        for k,v in list(stats[1].items()):
             print("{0}\t".format(v), end="")
         print("")
