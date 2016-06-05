@@ -22,27 +22,31 @@ if config.MULTICAST_GROUPS_QTY != 1:
 	group = 0
 	first_group_pixel = 0
 	for k, v in sorted_device_configs:
+		print(k, v)
 		managed_pixels = v[config.DeviceKeys.MANAGED_PIXELS_QTY]
 		pixel_index = v[config.DeviceKeys.FIRST_PIXEL]
-		if pixels_count + managed_pixels >= ideal_qty:
-			# update group data
+		pixels_count += managed_pixels
+		if pixels_count - first_group_pixel >= ideal_qty:
+			# update group dataconfig
+			print("creating group " + str(group))
 			multicast_group_data[group] = {}
-			multicast_group_data[group]["pixels"] = pixels_count
+			multicast_group_data[group]["pixels"] = pixels_count - first_group_pixel
 			multicast_group_data[group]["first_pixel"] = first_group_pixel
-			# next group
-			group += 1 
-			first_group_pixel = pixel_index
-			pixels_count = managed_pixels
-		else:
-			pixels_count += managed_pixels
+			group += 1
+			first_group_pixel = pixels_count
 
-	print(group)
-	multicast_group_data[group] = {}
-	multicast_group_data[group]["pixels"] = pixels_count
-	multicast_group_data[group]["first_pixel"] = first_group_pixel
+	if pixels_count < config.GLOBAL_PIXELS_QTY:
+		multicast_group_data[group] = {}
+		multicast_group_data[group]["pixels"] = pixels_count - first_group_pixel
+		multicast_group_data[group]["first_pixel"] = first_group_pixel
+		
+	# print(group)
+
 
 groups_qty = len(multicast_group_data.items())
 sorted_multicast_group_data = sorted(multicast_group_data.items(), key=lambda x: x[0])
+
+print(sorted_multicast_group_data)
 
 def get_multicast_ip_for_group(id):
 	mip = config.STREAMING_MULTICAST_DST_BASE_IP
@@ -84,8 +88,10 @@ def get_multicast_ip_for_device(id):
 	return multicast_group_data[get_multicast_group_for_device(id)]["ip"]
 
 def send_streaming_packet(seq, flags, payload):
+
 	if groups_qty == 1:
-		packet = utils.sendero_data_packet(seq, flags, payload)
+		packet = utils.sendero_data_packet(
+			utils.millis() + config.PLAYBACK_TIME_DELAY, seq, flags, payload)
 		sock.sendto(packet, (multicast_group_data[0]["ip"], config.STREAMING_DST_PORT))
 	else:
 		multicast_payloads = []
@@ -102,8 +108,17 @@ def send_streaming_packet(seq, flags, payload):
 		multicast_payloads.append(payload[last_pixel_index*3: config.GLOBAL_PIXELS_QTY*3])
 
 		group = 0
+		previous_timestamp = 0
+		offset = 0
 		for m_payload in multicast_payloads:
-			packet = utils.sendero_data_packet(seq, flags, m_payload)
+			curr_millis = utils.millis()
+			if group == 0:
+				first_timestamp = curr_millis
+			offset = curr_millis - first_timestamp
+			pt = curr_millis + config.PLAYBACK_TIME_DELAY - offset
+			packet = utils.sendero_data_packet(pt, seq, flags, m_payload)
 			sock.sendto(packet, (multicast_group_data[group]["ip"], config.STREAMING_DST_PORT))
-			time.sleep(config.DELAY_BETWEEN_MULTICAST_PACKETS)
+			if group < config.MULTICAST_GROUPS_QTY - 1:
+				time.sleep(config.DELAY_BETWEEN_MULTICAST_PACKETS)
 			group += 1
+

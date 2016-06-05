@@ -86,38 +86,41 @@ def send_dancing_sins():
 
     global clock_expiration_period_finish
 
+    lastTime = 0
     while packetsQty != MAX_PACKETS:
-        try:
-            # Uncomment the line below to send a package on each key press
-            # input()
-            r = int(255 * (math.sin(t * 4.12456654) + 1) / 2)
-            g = 255 - int(255 * (math.sin(t * 5.313) + 1) / 2)
-            b = int(255 * (math.sin(t * 9.125412) + 1) / 2)
-            color = [r, g, b]
+        currentTime = utils.millis()
+        if (currentTime - lastTime >= config.FRAME_RATE * 1000):
+            lastTime = currentTime
+            try:
+                # Uncomment the line below to send a package on each key press
+                # input()
+                r = int(255 * (math.sin(t * 4.12456654) + 1) / 2)
+                g = 255 - int(255 * (math.sin(t * 5.313) + 1) / 2)
+                b = int(255 * (math.sin(t * 9.125412) + 1) / 2)
+                color = [r, g, b]
 
-            for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
-                message[i:i + 3] = color
+                for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+                    message[i:i + 3] = color
 
-            flags = 0
+                flags = 0
 
-            networking.send_streaming_packet(seq, flags, message)
-            packetsQty += 1
+                networking.send_streaming_packet(seq, flags, message)
+                packetsQty += 1
 
-            seq = utils.increment_seq(seq)
-            t += 0.007#config.FRAME_RATE
-            time.sleep(config.FRAME_RATE)
+                seq = utils.increment_seq(seq)
+                t += 0.007#config.FRAME_RATE
 
-            if seq % 128 == 0:
-                print(
-                    "Sin - Current sequence number/time: "
-                    "{0} - {1}".format(seq, utils.millis()))
-        except KeyboardInterrupt:
-            time.sleep(2)
-            from sendero_middleware import devices
-            devices.worker_enabled = False
-            devices.request_statistics()
-            networking.sock.close()
-            sys.exit()
+                if seq % 128 == 0:
+                    print(
+                        "Sin - Current sequence number/time: "
+                        "{0} - {1}".format(seq, utils.millis()))
+            except KeyboardInterrupt:
+                time.sleep(2)
+                from sendero_middleware import devices
+                devices.worker_enabled = False
+                devices.request_statistics()
+                networking.sock.close()
+                sys.exit()
 
     time.sleep(2)
     from sendero_middleware import devices
@@ -125,7 +128,6 @@ def send_dancing_sins():
     devices.request_statistics()
     networking.sock.close()
     sys.exit()
-
 
 def send_flashing_lights():
     """Stream the dancing sins to udp_ip:udp_port."""
@@ -136,31 +138,29 @@ def send_flashing_lights():
     t = 0
     seq = 0
 
-    global clock_expiration_period_finish
-
+    lastTime = 0
     while True:
+        currentTime = utils.millis()
+        if (currentTime - lastTime >= config.FRAME_RATE * 1000):
+            lastTime = currentTime
 
-        # Uncomment the line below to send a package on each key press
-        # input()
+            for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+                if (t < config.FRAMES_PER_SECOND):
+                    message[i:i + 3] = [255, 255, 255]
+                else:
+                    message[i:i + 3] = [0, 0, 0]
 
-        for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
-            if (t < config.FRAMES_PER_SECOND):
-                message[i:i + 3] = [255, 255, 255]
-            else:
-                message[i:i + 3] = [0, 0, 0]
+            flags = 0
 
-        flags = 0
+            networking.send_streaming_packet(seq, flags, message)
 
-        networking.send_streaming_packet(seq, flags, message)
+            seq = utils.increment_seq(seq)
+            t = (t + 1) % (config.FRAMES_PER_SECOND * 2)
 
-        seq = utils.increment_seq(seq)
-        t = (t + 1) % (config.FRAMES_PER_SECOND * 2)
-        time.sleep(config.FRAME_RATE)
-
-        if seq % 128 == 0:
-            print(
-                "Sin - Current sequence number/time: "
-                "{0} - {1}".format(seq, utils.millis()))
+            if seq % 128 == 0:
+                print(
+                    "Sin - Current sequence number/time: "
+                    "{0} - {1}".format(seq, utils.millis()))
 
 def send_rgb_lights():
     """Stream the flashing rgb to udp_ip:udp_port."""
@@ -172,27 +172,30 @@ def send_rgb_lights():
 
     global clock_expiration_period_finish
 
+    lastTime = 0
     while True:
+        currentTime = utils.millis()
+        if (currentTime - lastTime >= config.FRAME_RATE * 1000):
+            lastTime = currentTime
+            # Uncomment the line below to send a package on each key press
+            # input()
 
-        # Uncomment the line below to send a package on each key press
-        # input()
+            for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+                message[i:i + 3] = color
 
-        for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
-            message[i:i + 3] = color
+            flags = 0
 
-        flags = 0
+            networking.send_streaming_packet(seq, flags, message)
 
-        networking.send_streaming_packet(seq, flags, message)
+            seq = utils.increment_seq(seq)
 
-        seq = utils.increment_seq(seq)
+            if seq % config.FRAMES_PER_SECOND == 0:
+                x = color.pop()
+                color = [x] + color
 
-        if seq % config.FRAMES_PER_SECOND == 0:
-            x = color.pop()
-            color = [x] + color
+            time.sleep(config.FRAME_RATE)
 
-        time.sleep(config.FRAME_RATE)
-
-        if seq % 128 == 0:
-            print(
-                "Sin - Current sequence number/time: "
-                "{0} - {1}".format(seq, utils.millis()))
+            if seq % 128 == 0:
+                print(
+                    "Sin - Current sequence number/time: "
+                    "{0} - {1}".format(seq, utils.millis()))

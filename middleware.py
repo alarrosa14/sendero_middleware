@@ -2,7 +2,8 @@
 
 import sys
 
-from sendero_middleware import devices, streaming, config
+from sendero_middleware import devices, streaming, config, networking
+import time
 
 """
 Sendero Middleware
@@ -49,6 +50,17 @@ if (len(sys.argv) > 1):
             streaming.send_rgb_lights()
         if len(sys.argv) > 2 and sys.argv[2] == "artnet":
             streaming.listen_and_redirect_artnet_packets(config.UDP_IP, config.UDP_PORT, config.STREAMING_DST_PORT)
+        if len(sys.argv) > 2 and sys.argv[2] == "nostream":
+            while True:
+                q = input() 
+                if q == "q":
+                    break
+            time.sleep(2)
+            devices.worker_enabled = False
+            devices.request_statistics()
+            networking.sock.close()
+            sys.exit()
+
 
     # ##########################################################################################################
     # Prod-Server Mode

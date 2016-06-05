@@ -40,7 +40,7 @@ STATS_REQUEST_INTERVAL = 3600
 """
 Sets how often the middleware sends a 'keep alive' packet to the devices.
 """
-KEEP_ALIVE_INTERVAL = 10
+KEEP_ALIVE_INTERVAL = 60
 
 """
 UDP port where devices request for connection.
@@ -67,7 +67,7 @@ Some times the devices miss broadcast packets if they are sent consecutively.
 This settings sets the delay between multicast packets.
 0.01 has proved to be enough.
 """
-DELAY_BETWEEN_MULTICAST_PACKETS = 0.01
+DELAY_BETWEEN_MULTICAST_PACKETS = 0.010
 
 """
 The port where the devices listens for the stream.
@@ -144,7 +144,7 @@ class DeviceKeys:
 """
 The total amount of pixels to which color data is going to be sent for.
 """
-GLOBAL_PIXELS_QTY = 8*12
+GLOBAL_PIXELS_QTY = 12*8
 
 # Default color order is GRB.
 # Set DeviceKeys.COLOR_ORDER if you need to change this
@@ -189,7 +189,7 @@ Should not be edited.
 """
 GLOBAL_DEVICES_CONFIGS = {
     "Global.pixelsQty": GLOBAL_PIXELS_QTY,
-    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL * 6,
+    "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL,
     "Streaming.playbackTimeDelay": PLAYBACK_TIME_DELAY,
     "ClockSync.offsetSigma": OFFSET_SIGMA,
     "ClockSync.expirationPeriod": EXPIRATION_PERIOD,

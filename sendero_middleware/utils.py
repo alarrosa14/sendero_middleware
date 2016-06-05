@@ -53,12 +53,17 @@ def unpack_raw_artnet_packet(raw_data):
     return packet
 
 
-def sendero_data_packet(seq, flags, payload):
-    """ Constructs a Sendero-Wireless-Protocol data packet """
+def sendero_data_packet(pt, seq, flags, payload):
     # XXX: This packet should have the SENDERO header
-    t = unsigned(millis() + config.PLAYBACK_TIME_DELAY)
+    """
+    Constructs a Sendero-Wireless-Protocol data packet 
+
+    previouspacket_timestamp is useful when multiple multicast groups
+    are enabled.
+    """
+    # XXX: This packet should have the SENDERO header
     return struct.pack("<IBB{0}B".format(len(payload)),
-                       t,
+                       unsigned(pt),
                        seq, flags,
                        *payload)
 
