@@ -61,6 +61,14 @@ class Device:
         first_multicast_pixel = networking.get_multicast_first_pixel_for_device(self.id)
         initial_packet_payload += "{0}:{1} ".format(config.DeviceKeys.MULTICAST_GROUP_FIRST_PIXEL, first_multicast_pixel)
 
+        # Set playback delay of multicast group
+        playbackDelay = networking.get_playback_time_delay_for_device(self.id)
+        print("=============================")
+        print("Device -> " + str(self.id) + " delay = " + str(playbackDelay))
+        print("=============================")
+
+        initial_packet_payload += "{0}:{1} ".format(config.DeviceKeys.PLAYBACK_DELAY, playbackDelay)
+
         # Add Multicast Group Total Pixels for device
         pixels_qty = networking.get_multicast_pixels_qty_for_device(self.id)
         initial_packet_payload += "{0}:{1}".format(config.DeviceKeys.STREAMING_PIXELS_QTY, pixels_qty)

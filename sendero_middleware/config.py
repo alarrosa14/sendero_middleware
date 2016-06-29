@@ -132,6 +132,8 @@ class DeviceKeys:
     """
     COLOR_ORDER = "Device.colorOrder"
 
+    PLAYBACK_DELAY = "Streaming.playbackTimeDelay"
+
     #########################################################################
     """
     These configurations are set automatically and shouldn't be set manually.
@@ -144,7 +146,7 @@ class DeviceKeys:
 """
 The total amount of pixels to which color data is going to be sent for.
 """
-GLOBAL_PIXELS_QTY = 12*8
+GLOBAL_PIXELS_QTY = 6*8
 
 # Default color order is GRB.
 # Set DeviceKeys.COLOR_ORDER if you need to change this
@@ -190,7 +192,7 @@ Should not be edited.
 GLOBAL_DEVICES_CONFIGS = {
     "Global.pixelsQty": GLOBAL_PIXELS_QTY,
     "ControlServer.keepAliveSeconds": KEEP_ALIVE_INTERVAL,
-    "Streaming.playbackTimeDelay": PLAYBACK_TIME_DELAY,
+    # "Streaming.playbackTimeDelay": PLAYBACK_TIME_DELAY,
     "ClockSync.offsetSigma": OFFSET_SIGMA,
     "ClockSync.expirationPeriod": EXPIRATION_PERIOD,
     "ClockSync.offsetMeanCalibrationConsecutivePackets":

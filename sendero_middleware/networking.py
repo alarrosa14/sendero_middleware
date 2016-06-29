@@ -84,14 +84,26 @@ def get_multicast_group_for_device(id):
 			return group
 	return sorted_multicast_group_data[-1][0]
 
+def get_playback_time_delay_for_device(id):
+	group = get_multicast_group_for_device(id)
+	return config.PLAYBACK_TIME_DELAY - group*config.DELAY_BETWEEN_MULTICAST_PACKETS*1000
+
 def get_multicast_ip_for_device(id):
 	return multicast_group_data[get_multicast_group_for_device(id)]["ip"]
 
+N = 0
+suma = 0
+mean = 0
+prev = 0
 def send_streaming_packet(seq, flags, payload):
-
+	global N
+	global mean
+	global suma
+	global prev
+	currMillis = utils.millis()
 	if groups_qty == 1:
 		packet = utils.sendero_data_packet(
-			utils.millis() + config.PLAYBACK_TIME_DELAY, seq, flags, payload)
+			currMillis + config.PLAYBACK_TIME_DELAY, seq, flags, payload)
 		sock.sendto(packet, (multicast_group_data[0]["ip"], config.STREAMING_DST_PORT))
 	else:
 		multicast_payloads = []
@@ -108,17 +120,17 @@ def send_streaming_packet(seq, flags, payload):
 		multicast_payloads.append(payload[last_pixel_index*3: config.GLOBAL_PIXELS_QTY*3])
 
 		group = 0
-		previous_timestamp = 0
 		offset = 0
 		for m_payload in multicast_payloads:
-			curr_millis = utils.millis()
-			if group == 0:
-				first_timestamp = curr_millis
-			offset = curr_millis - first_timestamp
-			pt = curr_millis + config.PLAYBACK_TIME_DELAY - offset
+			pt = utils.millis() + config.PLAYBACK_TIME_DELAY
 			packet = utils.sendero_data_packet(pt, seq, flags, m_payload)
 			sock.sendto(packet, (multicast_group_data[group]["ip"], config.STREAMING_DST_PORT))
 			if group < config.MULTICAST_GROUPS_QTY - 1:
 				time.sleep(config.DELAY_BETWEEN_MULTICAST_PACKETS)
 			group += 1
 
+	N += 1
+	if N > 1:
+		suma += currMillis - prev
+	mean = suma / N
+	prev = currMillis

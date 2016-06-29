@@ -75,10 +75,10 @@ def send_dancing_sins():
     t = 0
     seq = 0
     packetsQty = 0
-    MAX_PACKETS = config.FRAMES_PER_SECOND * 60 * 5
+    MAX_PACKETS = config.FRAMES_PER_SECOND * 60 * 120
 
     from sendero_middleware import devices
-    while len(devices.devices_connected) != 12:
+    while len(devices.devices_connected) != len(config.DEVICE_CONFIG.keys()):
         time.sleep(0.5)
 
     print("All devices connected!")
@@ -88,10 +88,10 @@ def send_dancing_sins():
 
     lastTime = 0
     while packetsQty != MAX_PACKETS:
-        currentTime = utils.millis()
-        if (currentTime - lastTime >= config.FRAME_RATE * 1000):
-            lastTime = currentTime
-            try:
+        try:
+            currentTime = utils.millis()
+            if (currentTime - lastTime >= config.FRAME_RATE * 1000):
+                lastTime = currentTime
                 # Uncomment the line below to send a package on each key press
                 # input()
                 r = int(255 * (math.sin(t * 4.12456654) + 1) / 2)
@@ -114,18 +114,21 @@ def send_dancing_sins():
                     print(
                         "Sin - Current sequence number/time: "
                         "{0} - {1}".format(seq, utils.millis()))
-            except KeyboardInterrupt:
-                time.sleep(2)
-                from sendero_middleware import devices
-                devices.worker_enabled = False
-                devices.request_statistics()
-                networking.sock.close()
-                sys.exit()
+        except KeyboardInterrupt:
+            print("KeyboardInterrupt")
+            time.sleep(2)
+            from sendero_middleware import devices
+            devices.worker_enabled = False
+            devices.request_statistics()
+            networking.sock.close()
+            sys.exit()
 
     time.sleep(2)
     from sendero_middleware import devices
     devices.worker_enabled = False
     devices.request_statistics()
+    print(networking.N)
+    print(networking.mean)
     networking.sock.close()
     sys.exit()
 
@@ -144,18 +147,31 @@ def send_flashing_lights():
         if (currentTime - lastTime >= config.FRAME_RATE * 1000):
             lastTime = currentTime
 
-            for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
-                if (t < config.FRAMES_PER_SECOND):
-                    message[i:i + 3] = [255, 255, 255]
-                else:
-                    message[i:i + 3] = [0, 0, 0]
+            if t < config.FRAMES_PER_SECOND:
+                for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+                    if (i < config.GLOBAL_PIXELS_QTY):
+                        message[i:i + 3] = [255, 255, 255]
+                    else:
+                        message[i:i + 3] = [0, 0, 0]
+            elif t >= config.FRAMES_PER_SECOND and t < 2*config.FRAMES_PER_SECOND:
+                for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+                    if (i >= config.GLOBAL_PIXELS_QTY and i < 2*config.GLOBAL_PIXELS_QTY):
+                        message[i:i + 3] = [255, 255, 255]
+                    else:
+                        message[i:i + 3] = [0, 0, 0]
+            else:
+                for i in range(0, 3 * config.GLOBAL_PIXELS_QTY, 3):
+                    if (i >= 2*config.GLOBAL_PIXELS_QTY):
+                        message[i:i + 3] = [255, 255, 255]
+                    else:
+                        message[i:i + 3] = [0, 0, 0]
 
             flags = 0
 
             networking.send_streaming_packet(seq, flags, message)
 
             seq = utils.increment_seq(seq)
-            t = (t + 1) % (config.FRAMES_PER_SECOND * 2)
+            t = (t + 1) % (config.FRAMES_PER_SECOND * 3)
 
             if seq % 128 == 0:
                 print(
@@ -192,8 +208,6 @@ def send_rgb_lights():
             if seq % config.FRAMES_PER_SECOND == 0:
                 x = color.pop()
                 color = [x] + color
-
-            time.sleep(config.FRAME_RATE)
 
             if seq % 128 == 0:
                 print(
