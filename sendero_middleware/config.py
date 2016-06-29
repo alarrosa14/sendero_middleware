@@ -215,4 +215,7 @@ def is_allowed_device(device_id):
 
 def get_sorted_device_configs():
     """Return the device configs sorted by key."""
-    return sorted(DEVICE_CONFIG.items(), key=lambda x: x[0])
+    return get_sorted_dictionary(DEVICE_CONFIG)
+
+def get_sorted_list_from_dictionary(dict):
+    return sorted(dict.items(), key=lambda x: x[0])

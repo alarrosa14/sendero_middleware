@@ -321,12 +321,13 @@ def request_statistics():
     rev = list(devices_connected.values())
     for d in rev:
         stats = d.request_stats()
+        orderedList = config.get_sorted_list_from_dictionary(stats[1])
         if first:
-            for k,v in list(stats[1].items()):
+            for k,v in orderedList:
                 print("{0}\t".format(k), end="")
             print("")
             first = False
 
-        for k,v in list(stats[1].items()):
+        for k,v in orderedList:
             print("{0}\t".format(v), end="")
         print("")
