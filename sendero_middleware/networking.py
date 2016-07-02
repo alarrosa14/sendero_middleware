@@ -40,8 +40,7 @@ if config.MULTICAST_GROUPS_QTY != 1:
 		multicast_group_data[group]["pixels"] = pixels_count - first_group_pixel
 		multicast_group_data[group]["first_pixel"] = first_group_pixel
 		
-	# print(group)
-
+	print(group)
 
 groups_qty = len(multicast_group_data.items())
 sorted_multicast_group_data = sorted(multicast_group_data.items(), key=lambda x: x[0])

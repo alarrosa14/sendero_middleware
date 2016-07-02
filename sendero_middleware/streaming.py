@@ -87,9 +87,13 @@ def send_dancing_sins():
     global clock_expiration_period_finish
 
     lastTime = 0
-    while packetsQty != MAX_PACKETS:
+    startTime = utils.millis()
+    while True:
         try:
             currentTime = utils.millis()
+            if currentTime - startTime >= 10*60*1000: # 10 minutes max
+                break
+
             if (currentTime - lastTime >= config.FRAME_RATE * 1000):
                 lastTime = currentTime
                 # Uncomment the line below to send a package on each key press

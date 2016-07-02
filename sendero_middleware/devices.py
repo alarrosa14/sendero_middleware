@@ -317,6 +317,19 @@ def start_sending_keep_alive():
 
 def request_statistics():
     print("Requesting statistics...")
+    print("============= CONFIGURATION ============= ")
+    configs = config.get_sorted_list_from_dictionary({
+        "config.FRAMES_PER_SECOND": config.FRAMES_PER_SECOND,
+        "config.MULTICAST_GROUPS_QTY": config.MULTICAST_GROUPS_QTY,
+        "config.DELAY_BETWEEN_MULTICAST_PACKETS": config.DELAY_BETWEEN_MULTICAST_PACKETS,
+        "config.PLAYBACK_TIME_DELAY": config.PLAYBACK_TIME_DELAY,
+        "config.GLOBAL_PIXELS_QTY": config.GLOBAL_PIXELS_QTY,
+        "networking.sorted_multicast_group_data": networking.sorted_multicast_group_data,
+    })
+    for k,v in configs:
+        print("{0}={1}".format(k,v))
+    print("")
+
     first = True
     rev = list(devices_connected.values())
     for d in rev:
@@ -325,7 +338,7 @@ def request_statistics():
         if first:
             for k,v in orderedList:
                 print("{0}\t".format(k), end="")
-            print("")
+            print("")   
             first = False
 
         for k,v in orderedList:

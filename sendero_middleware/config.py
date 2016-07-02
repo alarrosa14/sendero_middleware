@@ -40,7 +40,7 @@ STATS_REQUEST_INTERVAL = 3600
 """
 Sets how often the middleware sends a 'keep alive' packet to the devices.
 """
-KEEP_ALIVE_INTERVAL = 60
+KEEP_ALIVE_INTERVAL = 30
 
 """
 UDP port where devices request for connection.
@@ -67,7 +67,7 @@ Some times the devices miss broadcast packets if they are sent consecutively.
 This settings sets the delay between multicast packets.
 0.01 has proved to be enough.
 """
-DELAY_BETWEEN_MULTICAST_PACKETS = 0.010
+DELAY_BETWEEN_MULTICAST_PACKETS = FRAME_RATE / MULTICAST_GROUPS_QTY
 
 """
 The port where the devices listens for the stream.
@@ -146,7 +146,8 @@ class DeviceKeys:
 """
 The total amount of pixels to which color data is going to be sent for.
 """
-GLOBAL_PIXELS_QTY = 6*8
+
+GLOBAL_PIXELS_QTY = 488
 
 # Default color order is GRB.
 # Set DeviceKeys.COLOR_ORDER if you need to change this
@@ -171,6 +172,7 @@ Here is where device specific behaviour is configured using DeviceKeys
 DEVICE_CONFIG key must be the 'deviceId' as number
 """
 DEVICE_CONFIG = {}
+
 device = 0
 for pixel in range(0, GLOBAL_PIXELS_QTY, 8):
     DEVICE_CONFIG[device] = {
@@ -180,10 +182,6 @@ for pixel in range(0, GLOBAL_PIXELS_QTY, 8):
     }
     device += 1
 
-# DEVICE_CONFIG[device - 1] = {
-#     DeviceKeys.FIRST_PIXEL: 88,
-#     DeviceKeys.MANAGED_PIXELS_QTY: 4,
-# }
 
 """
 GLOBAL_DEVICES_CONFIGS are setted with most of the previous configs.
@@ -215,7 +213,7 @@ def is_allowed_device(device_id):
 
 def get_sorted_device_configs():
     """Return the device configs sorted by key."""
-    return get_sorted_dictionary(DEVICE_CONFIG)
+    return get_sorted_list_from_dictionary(DEVICE_CONFIG)
 
 def get_sorted_list_from_dictionary(dict):
     return sorted(dict.items(), key=lambda x: x[0])
