@@ -219,17 +219,24 @@ def device_server_worker():
     sock_udp.bind((config.UDP_IP, config.REGISTRATION_PORT))
     sock_udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
+    def sip_key_value(x):
+        values = x.split(b'=')
+        return None if len(values) != 2 else (values[0].decode("utf-8"), values[1].decode("utf-8"))
+
     while worker_enabled:
         print("Listening for Device Registering UDP messages...")
         data, addr = sock_udp.recvfrom(100)
+        sip_packet = dict(list(map(lambda x: sip_key_value(x), data.split(b'\n'))))
+        print(sip_packet)
 
-        if data[:8] == b'Device: ' and utils.represents_int(data[8:]):
-            print("Device sending message: {0} from IP/port: {1}/{2}".format(
-                data, addr[0], addr[1]))
-            device_id = int(data[8:])
+        wbb_number = int(sip_packet["o"][4:])
+        print(wbb_number)
+        if wbb_number != None:
+            print("Device sending SIP message: {0} from IP/port: {1}/{2}".format(
+                sip_packet, addr[0], addr[1]))
+            device_id = wbb_number
 
             if config.is_allowed_device(device_id):
-
                 lock.acquire()
                 if device_id in devices_connected:
                     print("A device with identifier {0} is already "
@@ -261,7 +268,6 @@ def device_server_worker():
 
             else:
                 print(device_id, "is not an allowed device.")
-
 
 def control_server_worker():
     current_device_index = 0
